@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Larissa Galvão — Autora</title>
+<meta content="Larissa Galvão, autora de romance, suspense, terror, poesia e histórias medievais com questões psicológicas." name="description"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&amp;family=EB+Garamond:ital,wght@0,400;0,500;1,400&amp;display=swap" rel="stylesheet"/>
+<style>
+body{margin:0;background:#160c11}
+a{color:#e6cfc8;text-decoration:none}a:hover{color:#ffffff}
+.lg-nav a:hover{color:#e8b8a8}
+.lg-card{transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease}
+.lg-card:hover{transform:translateY(-4px);border-color:rgba(214,160,145,.55)!important;box-shadow:0 18px 40px rgba(0,0,0,.45)}
+.lg-out:hover{background:rgba(214,160,145,.14)!important}
+.lg-soc:hover{filter:brightness(1.15);transform:translateY(-2px)}
+.lg-soc{transition:filter .2s,transform .2s}
+.lg-theme:hover{color:#f0c8bb}
+.lg-page{background:#170c12 url(images/page_bg.jpg) center top/100% auto no-repeat}
+.lg-page section,.lg-page header,.lg-page footer{box-sizing:border-box}
+@media (max-width:820px){.lg-page{background-size:auto 100%;background-position:center top}.lg-page section,.lg-page header,.lg-page footer{aspect-ratio:auto!important}}
+@media (max-width:820px){@media (max-width:820px){.lg-side{opacity:.28}.lg-divider{border-left:none!important;padding-left:0!important}}
+</style>
+<style>html{scroll-behavior:smooth}*{box-sizing:border-box}[hidden]{display:none!important}</style>
+<style>
+/* Ajuste responsivo exclusivo da grade de livros */
+@media (max-width: 900px) {
+  #livros .lg-books-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+@media (max-width: 560px) {
+  #livros .lg-books-grid { grid-template-columns: minmax(0, 1fr) !important; }
+}
+</style>
+
+<style id="amazon-buy-button-style">
+.lg-out[href*="amazon.com.br"]{
+  margin-top:14px!important;display:flex!important;align-items:center!important;justify-content:center!important;
+  gap:9px!important;min-height:36px;padding:7px 13px!important;border:1px solid #c9a77f!important;
+  border-radius:12px!important;color:#f4e4d7!important;
+  background:linear-gradient(180deg,#76543f 0%,#39251f 100%)!important;
+  box-shadow:inset 0 1px 0 rgba(255,232,203,.16),0 2px 7px rgba(0,0,0,.28);
+  font-family:Georgia,serif;font-size:14px!important;font-weight:600;text-decoration:none;
+  transition:background .2s ease,border-color .2s ease,transform .2s ease;
+}
+.lg-out[href*="amazon.com.br"]:hover{
+  background:linear-gradient(180deg,#8a6449 0%,#4a3026 100%)!important;border-color:#e2bd8d!important;transform:translateY(-1px);
+}
+.lg-out[href*="amazon.com.br"] .amazon-mark{width:27px;height:20px;display:block;flex:0 0 auto}
+.lg-out[href*="amazon.com.br"] span{line-height:1}
+</style>
+
+
+<style id="book-card-typography-share-fix">
+/* Pequeno ganho de legibilidade nas descrições e etiquetas dos livros */
+#livros .lg-card > p{
+  font-size:15px!important;
+  line-height:1.42!important;
+}
+#livros .lg-card > div[style*="margin-top: 14px"] span{
+  font-size:12.5px!important;
+  padding:4px 10px!important;
+}
+/* Mantém a linha de recomendação dentro da largura de cada cartão */
+#livros .lg-card > div[style*="justify-content: space-between"]{
+  width:100%;
+  min-width:0;
+  flex-wrap:wrap;
+  column-gap:5px!important;
+  row-gap:7px;
+}
+#livros .lg-card > div[style*="justify-content: space-between"] > span:first-child{
+  min-width:0;
+  flex:0 1 auto;
+  gap:4px!important;
+  font-size:11px!important;
+  white-space:nowrap;
+}
+#livros .lg-card > div[style*="justify-content: space-between"] > span:last-child{
+  min-width:0;
+  flex:0 1 auto;
+  gap:5px!important;
+  justify-content:flex-end;
+}
+#livros .lg-card .lg-soc{
+  width:23px!important;
+  height:23px!important;
+  flex:0 0 23px;
+}
+@media(max-width:1100px){
+  #livros .lg-card > div[style*="justify-content: space-between"] > span:first-child{
+    flex-basis:100%;
+  }
+  #livros .lg-card > div[style*="justify-content: space-between"] > span:last-child{
+    width:100%;
+    justify-content:flex-start;
+  }
+}
+</style>
+
+
+<style id="books-wide-desktop-and-readable-type">
+/* Livros: cinco cartões com distribuição uniforme e margens laterais discretas */
+#livros > div{
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding-left:clamp(18px,3.2vw,52px)!important;
+  padding-right:clamp(18px,3.2vw,52px)!important;
+  box-sizing:border-box!important;
+}
+#livros .lg-books-grid{
+  width:100%!important;
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  gap:clamp(10px,1.25vw,20px)!important;
+}
+#livros .lg-card{
+  min-width:0;
+  padding-left:clamp(10px,1vw,16px)!important;
+  padding-right:clamp(10px,1vw,16px)!important;
+}
+#livros .lg-card > p{
+  font-size:17px!important;
+  line-height:1.45!important;
+}
+#livros .lg-card > div[style*="margin-top: 14px"] span{
+  font-size:14px!important;
+  line-height:1.2!important;
+  padding:4px 10px!important;
+}
+#livros .lg-out .amazon-mark{width:27px;height:22px}
+@media(max-width:900px){
+  #livros .lg-books-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #livros .lg-card > p{font-size:16px!important}
+  #livros .lg-card > div[style*="margin-top: 14px"] span{font-size:13px!important}
+}
+@media(max-width:560px){
+  #livros .lg-books-grid{grid-template-columns:minmax(0,1fr)!important}
+  #livros > div{padding-left:16px!important;padding-right:16px!important}
+  #livros .lg-card > p{font-size:17px!important}
+  #livros .lg-card > div[style*="margin-top: 14px"] span{font-size:14px!important}
+}
+</style>
+
+
+\n</head>
+<body>
+<div class="lg-page" style="font-family: 'EB Garamond', Georgia, serif; color: #e6d3cd; min-height: 100vh; overflow: hidden">
+<!-- HEADER -->
+<header style="aspect-ratio: 1024 / 52; display: flex; flex-direction: column; justify-content: center">
+<div style="width: 100%; box-sizing: border-box; max-width: 1180px; margin: 0 auto; padding: 10px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+<a href="#inicio" style="display: flex; flex-direction: column; align-items: center; line-height: 1; color: #ead6cf">
+<span style="font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 500; letter-spacing: .5px">Larissa Galvão</span>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 8px; letter-spacing: 4px; color: #c9a59a; margin-top: 4px"><span style="width: 18px; height: 1px; background: #8a6a62"></span>AUTORA<span style="width: 18px; height: 1px; background: #8a6a62"></span></span>
+</a>
+<nav aria-label="Principal" class="lg-nav" style="display: flex; flex-wrap: wrap; gap: 32px; font-size: 15px">
+<a href="#inicio">Início</a>
+<a href="#sobre">Sobre a Autora</a>
+<a href="#livros">Livros</a>
+<a href="#temas">Temas</a>
+<a href="#contato">Contato</a>
+</nav>
+<div style="display: flex; align-items: center; gap: 16px; color: #e6cfc8">
+<a aria-label="Instagram" href="https://instagram.com/"><svg aria-hidden="true" fill="none" height="19" stroke="currentColor" stroke-width="1.7" viewbox="0 0 24 24" width="19"><rect height="18" rx="5" width="18" x="3" y="3"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" fill="currentColor" r=".6"></circle></svg></a>
+<a aria-label="Facebook" href="https://facebook.com/"><svg aria-hidden="true" fill="currentColor" height="19" viewbox="0 0 24 24" width="19"><path d="M14 8.5V6.6c0-.8.4-1.1 1.2-1.1H17V2.2h-2.7C11.6 2.2 10.6 4 10.6 6.3v2.2H8V12h2.6v9.8H14V12h2.6l.5-3.5z"></path></svg></a>
+<a aria-label="TikTok" href="https://tiktok.com/"><svg aria-hidden="true" fill="currentColor" height="19" viewbox="0 0 24 24" width="19"><path d="M16.5 2.5c.4 2.4 1.9 3.9 4.2 4.1v3.3c-1.5 0-2.9-.4-4.2-1.2v6.6a6.1 6.1 0 1 1-6.1-6.1h.6v3.4h-.6a2.7 2.7 0 1 0 2.7 2.7V2.5z"></path></svg></a>
+<a aria-label="YouTube" href="https://youtube.com/"><svg aria-hidden="true" fill="currentColor" height="21" viewbox="0 0 24 24" width="21"><path d="M21.6 7.2a2.6 2.6 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4A2.6 2.6 0 0 0 2.4 7.2 27 27 0 0 0 2 12a27 27 0 0 0 .4 4.8 2.6 2.6 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4a2.6 2.6 0 0 0 1.8-1.8A27 27 0 0 0 22 12a27 27 0 0 0-.4-4.8zM10 15V9l5.2 3z"></path></svg></a>
+<span style="width: 1px; height: 22px; background: rgba(214,160,145,.25)"></span>
+<button aria-label="Buscar" style="background: none; border: none; color: #e6cfc8; cursor: pointer; padding: 6px; display: flex"><svg aria-hidden="true" fill="none" height="19" stroke="currentColor" stroke-width="1.7" viewbox="0 0 24 24" width="19"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg></button>
+</div>
+</div>
+</header>
+<!-- HERO -->
+<section id="inicio" style="position: relative; aspect-ratio: 1024 / 278; display: flex; align-items: center; justify-content: center; padding: 24px">
+<div style="position: relative; display: flex; flex-direction: column; align-items: center; text-align: center">
+<svg aria-hidden="true" fill="none" height="28" style="opacity: .75" viewbox="0 0 110 28" width="110">
+<circle cx="12" cy="14" r="4" stroke="#b9918a" stroke-width="1"></circle>
+<path d="M30 8a7 7 0 0 0 0 12 6 6 0 0 1 0-12z" fill="#b9918a"></path>
+<circle cx="55" cy="14" r="10" stroke="#d2a79c" stroke-width="1.2"></circle>
+<path d="M55 4a10 10 0 0 1 0 20 7 7 0 0 0 0-20z" fill="#d2a79c"></path>
+<path d="M80 8a7 7 0 0 1 0 12 6 6 0 0 0 0-12z" fill="#b9918a"></path>
+<circle cx="98" cy="14" r="4" stroke="#b9918a" stroke-width="1"></circle>
+</svg>
+<div style="display: flex; align-items: flex-end; gap: 0; margin-top: 4px">
+<h1 style="margin: 0; font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: clamp(48px, 7vw, 76px); line-height: 1; letter-spacing: 1px; color: #e8bfb3; background: linear-gradient(180deg, #f3d6cc 0%, #c99486 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent">Larissa Galvão</h1>
+<svg aria-hidden="true" fill="none" height="90" stroke="#d9b1a5" stroke-width="1.2" style="margin-left: -6px; margin-bottom: -8px" viewbox="0 0 70 90" width="70">
+<path d="M66 3C40 10 22 34 14 70"></path>
+<path d="M66 3C62 24 48 46 22 62C30 46 36 34 40 26C34 38 24 52 18 60C24 36 40 16 66 3z"></path>
+<path d="M14 70L6 87"></path>
+<path d="M52 16l6-2M46 24l7-1M40 32l7 0M34 40l6 1M29 48l5 2"></path>
+</svg>
+</div>
+<div style="display: flex; align-items: center; gap: 16px; margin-top: 6px; color: #e6cfc8">
+<span style="width: 44px; height: 1px; background: #a07c74"></span>
+<span style="font-family: 'Cormorant Garamond', serif; font-size: 20px; letter-spacing: 9px; padding-left: 9px">AUTORA</span>
+<span style="width: 44px; height: 1px; background: #a07c74"></span>
+</div>
+<p style="margin: 26px 0 0; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 21px; line-height: 1.3; color: #dcc4bd">Histórias que mergulham na mente,<br/>no coração e nos lugares mais sombrios da alma.</p>
+<svg aria-hidden="true" fill="none" height="16" style="margin-top: 18px" viewbox="0 0 260 16" width="260">
+<path d="M0 8h112M148 8h112" stroke="#8f6c65" stroke-width="1"></path>
+<path d="M130 2l6 6-6 6-6-6z" stroke="#d2a79c" stroke-width="1"></path>
+<path d="M116 8h6M138 8h6" stroke="#d2a79c" stroke-width="1"></path>
+</svg>
+</div>
+</section>
+<!-- SOBRE + UNIVERSO -->
+<section id="sobre" style="position: relative; aspect-ratio: 1024 / 236; display: flex; flex-direction: column; justify-content: center">
+<div style="position: relative; width: 100%; box-sizing: border-box; max-width: 1080px; margin: 0 auto; padding: 18px 24px; display: flex; flex-wrap: wrap; gap: 32px; align-items: center">
+<div style="flex: 1 1 520px; min-width: 0; display: flex; flex-wrap: wrap; gap: 26px; align-items: center">
+<div style="flex: 0 0 auto; width: 178px; height: 222px; position: relative">
+<img alt="Retrato da autora Larissa Galvão de perfil, em tons escuros" src="images/portrait.jpg" style="width: 178px; height: 222px; object-fit: cover; display: block"/>
+</div>
+<div style="flex: 1 1 300px; min-width: 0">
+<h2 style="margin: 0; font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 30px; color: #e8bfb3">Sobre a Autora</h2>
+<p style="margin: 16px 0 0; font-size: 15px; line-height: 1.55; color: #dcc8c2">Larissa Galvão é autora de obras que exploram a complexidade dos sentimentos humanos — do amor à obsessão, da poesia à sombra. Em suas histórias, emoção, suspense e questões psicológicas se entrelaçam a universos que vão do real ao medieval, do romântico ao aterrorizante.</p>
+<a class="lg-out" href="#sobre" style="margin-top: 16px; display: inline-flex; align-items: center; gap: 12px; padding: 5px 18px; border: 1px solid #b88f84; border-radius: 6px; font-size: 14px; color: #ead6cf">Conheça mais <svg aria-hidden="true" fill="none" height="16" stroke="currentColor" stroke-width="1.6" viewbox="0 0 24 24" width="16"><path d="M4 12h16M14 6l6 6-6 6"></path></svg></a>
+</div>
+</div>
+<div class="lg-divider" style="flex: 1 1 340px; min-width: 0; border-left: 1px solid rgba(214,160,145,.22); padding-left: 40px">
+<h2 style="margin: 0 0 18px 20px; font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 26px; color: #e8bfb3">Universo Literário</h2>
+<ul style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; font-size: 13.5px; color: #e0ccc6">
+<li style="display: flex; align-items: center; gap: 14px"><svg aria-hidden="true" fill="none" height="30" stroke="#d2a79c" stroke-width="1.1" viewbox="0 0 24 24" width="30"><path d="M11 4.5A3 3 0 0 0 6 6.6a3 3 0 0 0-2.4 4.6A3 3 0 0 0 5 16.5a3 3 0 0 0 4.5 2.8A2.4 2.4 0 0 0 11 20V4.5zM13 4.5a3 3 0 0 1 5 2.1 3 3 0 0 1 2.4 4.6 3 3 0 0 1-1.4 5.3 3 3 0 0 1-4.5 2.8A2.4 2.4 0 0 1 13 20V4.5z"></path><path d="M8 9.5c1 0 2 .6 2 1.8M16 9.5c-1 0-2 .6-2 1.8M7.5 14c1 .4 2 .2 2.6-.6M16.5 14c-1 .4-2 .2-2.6-.6"></path></svg>Questões psicológicas</li>
+<li style="display: flex; align-items: center; gap: 14px"><svg aria-hidden="true" fill="none" height="30" stroke="#d2a79c" stroke-width="1.1" viewbox="0 0 24 24" width="30"><path d="M20 3C12 4.5 7 10 5.5 19L4 21"></path><path d="M20 3c-1 6-5 11-12 14 2-4 4-7 6-9-3 3-5 6-6.5 9C9 10 13 5.5 20 3z"></path></svg>Poesia</li>
+<li style="display: flex; align-items: center; gap: 14px"><svg aria-hidden="true" fill="none" height="30" stroke="#d2a79c" stroke-width="1.1" viewbox="0 0 24 24" width="30"><path d="M12 20s-7.5-4.6-7.5-10.3A4.2 4.2 0 0 1 12 7.2a4.2 4.2 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z"></path></svg>Romance</li>
+<li style="display: flex; align-items: center; gap: 14px"><svg aria-hidden="true" fill="none" height="30" stroke="#d2a79c" stroke-width="1.1" viewbox="0 0 24 24" width="30"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>Suspense</li>
+<li style="display: flex; align-items: center; gap: 14px"><svg aria-hidden="true" fill="none" height="30" stroke="#d2a79c" stroke-width="1.1" viewbox="0 0 24 24" width="30"><path d="M3 18h18M4 18L3 8l5 4 4-7 4 7 5-4-1 10"></path><circle cx="12" cy="14.5" r="1"></circle><circle cx="7.5" cy="15" r=".8"></circle><circle cx="16.5" cy="15" r=".8"></circle></svg>Medieval</li>
+<li style="display: flex; align-items: center; gap: 14px"><svg aria-hidden="true" fill="none" height="30" stroke="#d2a79c" stroke-width="1.1" viewbox="0 0 24 24" width="30"><path d="M12 2l1.8 8.2L22 12l-8.2 1.8L12 22l-1.8-8.2L2 12l8.2-1.8z"></path></svg>Sentimentos</li>
+<li style="display: flex; align-items: center; gap: 14px"><svg aria-hidden="true" fill="#d2a79c" height="30" viewbox="0 0 24 24" width="30"><path d="M12 3a7.5 7.5 0 0 0-4.5 13.5V19a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1v-2.5A7.5 7.5 0 0 0 12 3zm-3 7.5a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6zm6 0a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6zM11 15.5l1-1.8 1 1.8z" fill-rule="evenodd"></path></svg>Terror</li>
+<li style="display: flex; align-items: center; gap: 14px"><svg aria-hidden="true" fill="none" height="30" stroke="#d2a79c" stroke-width="1.1" viewbox="0 0 24 24" width="30"><path d="M12 21.5a6.5 6.5 0 0 0 6.5-6.5c0-4.5-3.5-7-4.5-12-2.5 2-3.5 4.5-3.5 7-1-.8-1.8-2-2-3.2-2 2-3 4.5-3 8.2a6.5 6.5 0 0 0 6.5 6.5z"></path><path d="M12 21.5a3 3 0 0 1-3-3c0-2 1.5-3 3-5.5 1.5 2.5 3 3.5 3 5.5a3 3 0 0 1-3 3z"></path></svg>Emoção</li>
+</ul>
+</div>
+</div>
+</section>
+<!-- LIVROS -->
+<section id="livros" style="aspect-ratio: 1024 / 580; display: flex; flex-direction: column; justify-content: center">
+<div style="width: 100%; box-sizing: border-box; max-width: none; margin: 0 auto; padding: 8px clamp(18px, 3.2vw, 52px) 20px">
+<div style="display: flex; align-items: center; justify-content: center; gap: 20px">
+<svg aria-hidden="true" fill="none" height="14" style="flex-shrink: 1" viewbox="0 0 110 14" width="110"><path d="M0 7h84" stroke="#8f6c65"></path><path d="M94 2l5 5-5 5-5-5z" stroke="#d2a79c"></path><path d="M99 7h11" stroke="#d2a79c"></path></svg>
+<h2 style="margin: 0; font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 34px; color: #e8bfb3; text-align: center">Livros em Destaque</h2>
+<svg aria-hidden="true" fill="none" height="14" style="flex-shrink: 1" viewbox="0 0 110 14" width="110"><path d="M26 7h84" stroke="#8f6c65"></path><path d="M16 2l5 5-5 5-5-5z" stroke="#d2a79c"></path><path d="M0 7h11" stroke="#d2a79c"></path></svg>
+</div>
+<div class="lg-books-grid" style="margin-top: 22px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px">
+<article class="lg-card" style="display: flex; flex-direction: column; border: 1px solid rgba(214,160,145,.2); border-radius: 8px; background: linear-gradient(180deg, rgba(70,38,50,.42) 0%, rgba(30,16,22,.62) 100%); padding: 12px 14px 14px">
+<img alt="Capa de Tudo que Ficou de Nós, de Larissa Galvão" src="images/cover1.jpg" style="display: block; width: 74%; aspect-ratio: 171 / 231; object-fit: cover; margin: 0 auto 0; box-shadow: 0 10px 28px rgba(0,0,0,.55)"/>
+<h3 style="margin: 14px 0 0; font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 22px; color: #f0dcd5">Tudo que Ficou de Nós</h3>
+<p style="margin: 8px 0 0; font-size: 13.5px; line-height: 1.4; color: #d6c2bc; flex-grow: 1">Elvira perdeu quase tudo: o casamento, a proximidade da filha e Hélio, o grande amor de sua vida, que está entre a vida e a morte. Ao encontrar cartas guardadas por três décadas, ela é lançada a pesadelos que a levam de volta a outras épocas, a amores e feridas antigas. Entre memória e mistério, uma história comovente sobre culpa, perdão e segundas chances — e sobre um amor que talvez nem o tempo consiga separar.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px">
+<span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">Romance</span><span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">Drama</span><span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">Suspense psicológico</span><span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">Memória</span><span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">Segundas chances</span><span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">Amor</span></div>
+<a class="lg-out" href="https://www.amazon.com.br/dp/B0HS653SFG" rel="noopener" target="_blank">
+<svg class="amazon-mark" viewBox="0 0 42 30" aria-hidden="true" focusable="false">
+<text x="8" y="20" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" fill="#fff4e8">a</text>
+<path d="M7 23c8 5.2 19.5 5.2 28 .2" fill="none" stroke="#f2a847" stroke-width="2.3" stroke-linecap="round"/>
+<path d="m30.7 20.7 5 2.5-5.4 1.6" fill="none" stroke="#f2a847" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+<span>Comprar</span>
+</a>
+<div style="margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 6px">
+<span style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #d6c2bc"><svg aria-hidden="true" fill="none" height="14" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24" width="14"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"></path></svg>Recomendar</span>
+<span style="display: flex; align-items: center; gap: 8px">
+<a aria-label="Recomendar pelo WhatsApp" class="lg-soc" href="https://wa.me/?text=Ol%C3%A1%2C%20descobri%20um%20livro%20interessante.....%20Tudo%20que%20Ficou%20de%20N%C3%B3s%20de%20Larissa%20Galv%C3%A3o%3A%0Ahttps%3A%2F%2Fwww.amazon.com.br%2Fdp%2FB0HS653SFG" rel="noopener" style="width: 26px; height: 26px; border-radius: 50%; background: #25a85a; display: flex; align-items: center; justify-content: center; color: #ffffff" target="_blank"><svg aria-hidden="true" fill="none" height="15" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24" width="15"><path d="M4 20l1.3-3.8A8 8 0 1 1 8 19z"></path><path d="M9.2 8.6c0 3.4 2.8 6.2 6.2 6.2l.9-1.4-1.8-.9-.9.9c-1.1-.5-2.3-1.7-2.8-2.8l.9-.9-.9-1.8z" fill="currentColor" stroke="none"></path></svg></a>
+<a aria-label="Recomendar pelo Facebook" class="lg-soc" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.amazon.com.br%2Fdp%2FB0HS653SFG&quote=Ol%C3%A1%2C%20descobri%20um%20livro%20interessante.....%20Tudo%20que%20Ficou%20de%20N%C3%B3s%20de%20Larissa%20Galv%C3%A3o%3A%0Ahttps%3A%2F%2Fwww.amazon.com.br%2Fdp%2FB0HS653SFG" rel="noopener" style="width: 26px; height: 26px; border-radius: 50%; background: #2f6fe0; display: flex; align-items: center; justify-content: center; color: #ffffff" target="_blank"><svg aria-hidden="true" fill="currentColor" height="13" viewbox="0 0 24 24" width="13"><path d="M14 8.5V6.6c0-.8.4-1.1 1.2-1.1H17V2.2h-2.7C11.6 2.2 10.6 4 10.6 6.3v2.2H8V12h2.6v9.8H14V12h2.6l.5-3.5z"></path></svg></a>
+<button type="button" aria-label="Copiar texto para compartilhar no Instagram" class="lg-soc copy-share-message" data-share-message="Ol%C3%A1%2C%20descobri%20um%20livro%20interessante.....%20Tudo%20que%20Ficou%20de%20N%C3%B3s%20de%20Larissa%20Galv%C3%A3o%3A%0Ahttps%3A%2F%2Fwww.amazon.com.br%2Fdp%2FB0HS653SFG" style="width: 26px; height: 26px; border: 0; padding: 0; border-radius: 50%; background: linear-gradient(45deg, #f2a43a, #e1306c 50%, #8a3ab9); display: flex; align-items: center; justify-content: center; color: #ffffff; cursor: pointer" title="Copiar mensagem para publicar no Instagram"><svg aria-hidden="true" fill="none" height="14" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14"><rect height="17" rx="5" width="17" x="3.5" y="3.5"></rect><circle cx="12" cy="12" r="3.8"></circle></svg></button>
+<a aria-label="Outras formas de compartilhar" href="#contato" style="display: flex; color: #e2cbc4; padding: 4px"><svg aria-hidden="true" fill="none" height="18" stroke="currentColor" stroke-width="1.6" viewbox="0 0 24 24" width="18"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"></path></svg></a>
+</span>
+</div>
+</article>
+<article class="lg-card" style="display: flex; flex-direction: column; border: 1px solid rgba(214,160,145,.2); border-radius: 8px; background: linear-gradient(180deg, rgba(70,38,50,.42) 0%, rgba(30,16,22,.62) 100%); padding: 12px 14px 14px">
+<img alt="Capa de O Reino dos Que Nunca Morrem, de Larissa Galvão" src="images/cover2.jpg" style="display: block; width: 74%; aspect-ratio: 171 / 231; object-fit: cover; margin: 0 auto 0; box-shadow: 0 10px 28px rgba(0,0,0,.55)"/>
+<h3 style="margin: 14px 0 0; font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 22px; color: #f0dcd5">O Reino dos Que Nunca Morrem</h3>
+<p style="margin: 8px 0 0; font-size: 13.5px; line-height: 1.4; color: #d6c2bc; flex-grow: 1">Aprisionado há séculos no Santuário dos Vampiros, Elliot foge para o mundo humano e encontra Coraline, uma princesa presa às obrigações da coroa. Entre vampiros, bruxas, sereias, dragões e uma guerra entre dois mundos, nasce um amor proibido que desafia o destino e a própria eternidade. Uma fantasia romântica sombria sobre liberdade, pertencimento e o preço de amar quem deveria ser seu inimigo.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px">
+<span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">Fantasia romântica</span><span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">Vampiros</span><span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">Medieval</span><span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">Amor proibido</span><span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">Magia</span><span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">Aventura</span></div>
+<a class="lg-out" href="https://www.amazon.com.br/dp/B0HS95TVWG" rel="noopener" target="_blank">
+<svg class="amazon-mark" viewBox="0 0 42 30" aria-hidden="true" focusable="false">
+<text x="8" y="20" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" fill="#fff4e8">a</text>
+<path d="M7 23c8 5.2 19.5 5.2 28 .2" fill="none" stroke="#f2a847" stroke-width="2.3" stroke-linecap="round"/>
+<path d="m30.7 20.7 5 2.5-5.4 1.6" fill="none" stroke="#f2a847" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+<span>Comprar</span>
+</a>
+<div style="margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 6px">
+<span style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #d6c2bc"><svg aria-hidden="true" fill="none" height="14" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24" width="14"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"></path></svg>Recomendar</span>
+<span style="display: flex; align-items: center; gap: 8px">
+<a aria-label="Recomendar pelo WhatsApp" class="lg-soc" href="https://wa.me/?text=Ol%C3%A1%2C%20descobri%20um%20livro%20interessante.....%20O%20Reino%20dos%20Que%20Nunca%20Morrem%20de%20Larissa%20Galv%C3%A3o%3A%0Ahttps%3A%2F%2Fwww.amazon.com.br%2Fdp%2FB0HS95TVWG" rel="noopener" style="width: 26px; height: 26px; border-radius: 50%; background: #25a85a; display: flex; align-items: center; justify-content: center; color: #ffffff" target="_blank"><svg aria-hidden="true" fill="none" height="15" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24" width="15"><path d="M4 20l1.3-3.8A8 8 0 1 1 8 19z"></path><path d="M9.2 8.6c0 3.4 2.8 6.2 6.2 6.2l.9-1.4-1.8-.9-.9.9c-1.1-.5-2.3-1.7-2.8-2.8l.9-.9-.9-1.8z" fill="currentColor" stroke="none"></path></svg></a>
+<a aria-label="Recomendar pelo Facebook" class="lg-soc" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.amazon.com.br%2Fdp%2FB0HS95TVWG&quote=Ol%C3%A1%2C%20descobri%20um%20livro%20interessante.....%20O%20Reino%20dos%20Que%20Nunca%20Morrem%20de%20Larissa%20Galv%C3%A3o%3A%0Ahttps%3A%2F%2Fwww.amazon.com.br%2Fdp%2FB0HS95TVWG" rel="noopener" style="width: 26px; height: 26px; border-radius: 50%; background: #2f6fe0; display: flex; align-items: center; justify-content: center; color: #ffffff" target="_blank"><svg aria-hidden="true" fill="currentColor" height="13" viewbox="0 0 24 24" width="13"><path d="M14 8.5V6.6c0-.8.4-1.1 1.2-1.1H17V2.2h-2.7C11.6 2.2 10.6 4 10.6 6.3v2.2H8V12h2.6v9.8H14V12h2.6l.5-3.5z"></path></svg></a>
+<button type="button" aria-label="Copiar texto para compartilhar no Instagram" class="lg-soc copy-share-message" data-share-message="Ol%C3%A1%2C%20descobri%20um%20livro%20interessante.....%20O%20Reino%20dos%20Que%20Nunca%20Morrem%20de%20Larissa%20Galv%C3%A3o%3A%0Ahttps%3A%2F%2Fwww.amazon.com.br%2Fdp%2FB0HS95TVWG" style="width: 26px; height: 26px; border: 0; padding: 0; border-radius: 50%; background: linear-gradient(45deg, #f2a43a, #e1306c 50%, #8a3ab9); display: flex; align-items: center; justify-content: center; color: #ffffff; cursor: pointer" title="Copiar mensagem para publicar no Instagram"><svg aria-hidden="true" fill="none" height="14" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14"><rect height="17" rx="5" width="17" x="3.5" y="3.5"></rect><circle cx="12" cy="12" r="3.8"></circle></svg></button>
+<a aria-label="Outras formas de compartilhar" href="#contato" style="display: flex; color: #e2cbc4; padding: 4px"><svg aria-hidden="true" fill="none" height="18" stroke="currentColor" stroke-width="1.6" viewbox="0 0 24 24" width="18"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"></path></svg></a>
+</span>
+</div>
+</article>
+<article class="lg-card" style="display: flex; flex-direction: column; border: 1px solid rgba(214,160,145,.2); border-radius: 8px; background: linear-gradient(180deg, rgba(70,38,50,.42) 0%, rgba(30,16,22,.62) 100%); padding: 12px 14px 14px">
+<img alt="Capa de As Ruínas da Alma — Parte I: O Inventário de Tudo o que Dói, de Larissa Galvão" src="images/cover_ruinas_parte1.jpeg" style="display: block; width: 74%; aspect-ratio: 171 / 231; object-fit: cover; margin: 0 auto 0; box-shadow: 0 10px 28px rgba(0,0,0,.55)"/>
+<h3 style="margin: 14px 0 0; font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 22px; color: #f0dcd5">As Ruínas da Alma — Parte I: O Inventário de Tudo o que Dói</h3>
+<p style="margin: 8px 0 0; font-size: 13.5px; line-height: 1.4; color: #d6c2bc; flex-grow: 1">O começo da travessia: um catálogo íntimo das dores que moram no peito. A tristeza ao amanhecer, a mãe que nunca enxergou a filha e o amor que fere e cura se transformam em versos — até a descoberta de que, mesmo no fundo do abismo, tudo é arte.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px"><span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">Poesia</span><span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">Infância</span><span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">Dor</span><span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">Amor</span><span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">18+</span></div>
+<button type="button" class="lg-out disabled-coming-soon" disabled aria-disabled="true"><span>Em breve</span></button>
+<div style="margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 6px">
+<span style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #d6c2bc"><svg aria-hidden="true" fill="none" height="14" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24" width="14"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"></path></svg>Recomendar</span>
+<span style="display: flex; align-items: center; gap: 8px">
+<span class="lg-soc disabled-share" aria-disabled="true" title="Compartilhamento disponível em breve" style="opacity:.28; pointer-events:none; cursor:not-allowed"><svg aria-hidden="true" fill="none" height="15" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24" width="15"><path d="M4 20l1.3-3.8A8 8 0 1 1 8 19z"></path><path d="M9.2 8.6c0 3.4 2.8 6.2 6.2 6.2l.9-1.4-1.8-.9-.9.9c-1.1-.5-2.3-1.7-2.8-2.8l.9-.9-.9-1.8z" fill="currentColor" stroke="none"></path></svg></span>
+<span class="lg-soc disabled-share" aria-disabled="true" title="Compartilhamento disponível em breve" style="opacity:.28; pointer-events:none; cursor:not-allowed"><svg aria-hidden="true" fill="currentColor" height="13" viewbox="0 0 24 24" width="13"><path d="M14 8.5V6.6c0-.8.4-1.1 1.2-1.1H17V2.2h-2.7C11.6 2.2 10.6 4 10.6 6.3v2.2H8V12h2.6v9.8H14V12h2.6l.5-3.5z"></path></svg></span>
+<span class="lg-soc disabled-share" aria-disabled="true" title="Compartilhamento disponível em breve" style="opacity:.28; pointer-events:none; cursor:not-allowed"><svg aria-hidden="true" fill="none" height="14" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="14"><rect height="17" rx="5" width="17" x="3.5" y="3.5"></rect><circle cx="12" cy="12" r="3.8"></circle></svg></span>
+<span aria-label="Compartilhamento indisponível" aria-disabled="true" style="display:flex;color:#e2cbc4;padding:4px;opacity:.28;pointer-events:none"><svg aria-hidden="true" fill="none" height="18" stroke="currentColor" stroke-width="1.6" viewbox="0 0 24 24" width="18"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"></path></svg></span>
+</span>
+</div>
+</article><article class="lg-card" style="display: flex; flex-direction: column; border: 1px solid rgba(214,160,145,.2); border-radius: 8px; background: linear-gradient(180deg, rgba(70,38,50,.42) 0%, rgba(30,16,22,.62) 100%); padding: 12px 14px 14px">
+<img alt="Capa de As Ruínas da Alma — Parte II: O Museu das Coisas que Morreram, de Larissa Galvão" src="images/cover_ruinas_parte2.jpeg" style="display: block; width: 74%; aspect-ratio: 171 / 231; object-fit: cover; margin: 0 auto 0; box-shadow: 0 10px 28px rgba(0,0,0,.55)"/>
+<h3 style="margin: 14px 0 0; font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 22px; color: #f0dcd5">As Ruínas da Alma — Parte II: O Museu das Coisas que Morreram</h3>
+<p style="margin: 8px 0 0; font-size: 13.5px; line-height: 1.4; color: #d6c2bc; flex-grow: 1">Uma viagem pelas galerias da memória: o toque que nunca foi embora, a infância que partiu sem se despedir, a avó que segurou a mão da neta e os amores que viraram retratos congelados no tempo. Poemas sobre o luto daquilo que existiu e do que nunca chegou a existir.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px"><span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">Poesia</span><span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">Memória</span><span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">Luto</span><span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">Saudade</span><span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">18+</span></div>
+<button type="button" class="lg-out disabled-coming-soon" disabled aria-disabled="true"><span>Em breve</span></button>
+<div style="margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 6px">
+<span style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #d6c2bc"><svg aria-hidden="true" fill="none" height="14" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24" width="14"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"></path></svg>Recomendar</span>
+<span style="display: flex; align-items: center; gap: 8px">
+<span class="lg-soc disabled-share" aria-disabled="true" title="Compartilhamento disponível em breve" style="opacity:.28; pointer-events:none; cursor:not-allowed"><svg aria-hidden="true" fill="none" height="15" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24" width="15"><path d="M4 20l1.3-3.8A8 8 0 1 1 8 19z"></path><path d="M9.2 8.6c0 3.4 2.8 6.2 6.2 6.2l.9-1.4-1.8-.9-.9.9c-1.1-.5-2.3-1.7-2.8-2.8l.9-.9-.9-1.8z" fill="currentColor" stroke="none"></path></svg></span>
+<span class="lg-soc disabled-share" aria-disabled="true" title="Compartilhamento disponível em breve" style="opacity:.28; pointer-events:none; cursor:not-allowed"><svg aria-hidden="true" fill="currentColor" height="13" viewbox="0 0 24 24" width="13"><path d="M14 8.5V6.6c0-.8.4-1.1 1.2-1.1H17V2.2h-2.7C11.6 2.2 10.6 4 10.6 6.3v2.2H8V12h2.6v9.8H14V12h2.6l.5-3.5z"></path></svg></span>
+<span class="lg-soc disabled-share" aria-disabled="true" title="Compartilhamento disponível em breve" style="opacity:.28; pointer-events:none; cursor:not-allowed"><svg aria-hidden="true" fill="none" height="14" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="14"><rect height="17" rx="5" width="17" x="3.5" y="3.5"></rect><circle cx="12" cy="12" r="3.8"></circle></svg></span>
+<span aria-label="Compartilhamento indisponível" aria-disabled="true" style="display:flex;color:#e2cbc4;padding:4px;opacity:.28;pointer-events:none"><svg aria-hidden="true" fill="none" height="18" stroke="currentColor" stroke-width="1.6" viewbox="0 0 24 24" width="18"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"></path></svg></span>
+</span>
+</div>
+</article><article class="lg-card" style="display: flex; flex-direction: column; border: 1px solid rgba(214,160,145,.2); border-radius: 8px; background: linear-gradient(180deg, rgba(70,38,50,.42) 0%, rgba(30,16,22,.62) 100%); padding: 12px 14px 14px">
+<img alt="Capa de As Ruínas da Alma — Parte III: A Última Anatomia do Sofrimento, de Larissa Galvão" src="images/cover_ruinas_parte3.jpeg" style="display: block; width: 74%; aspect-ratio: 171 / 231; object-fit: cover; margin: 0 auto 0; box-shadow: 0 10px 28px rgba(0,0,0,.55)"/>
+<h3 style="margin: 14px 0 0; font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 22px; color: #f0dcd5">As Ruínas da Alma — Parte III: A Última Anatomia do Sofrimento</h3>
+<p style="margin: 8px 0 0; font-size: 13.5px; line-height: 1.4; color: #d6c2bc; flex-grow: 1">O mergulho final — e o mais corajoso. A dor é dissecada até o osso em poemas de imagens brutais e catárticas que enfrentam o trauma, o abuso e a culpa de frente. Um encerramento devastador e libertador, que termina como toda grande travessia: com um adeus.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px"><span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">Poesia</span><span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">Trauma</span><span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">Abuso</span><span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">Catarse</span><span style="font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: rgba(214,160,145,.12); border: 1px solid rgba(214,160,145,.22); color: #e2cbc4">18+</span></div>
+<button type="button" class="lg-out disabled-coming-soon" disabled aria-disabled="true"><span>Em breve</span></button>
+<div style="margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 6px">
+<span style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #d6c2bc"><svg aria-hidden="true" fill="none" height="14" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24" width="14"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"></path></svg>Recomendar</span>
+<span style="display: flex; align-items: center; gap: 8px">
+<span class="lg-soc disabled-share" aria-disabled="true" title="Compartilhamento disponível em breve" style="opacity:.28; pointer-events:none; cursor:not-allowed"><svg aria-hidden="true" fill="none" height="15" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24" width="15"><path d="M4 20l1.3-3.8A8 8 0 1 1 8 19z"></path><path d="M9.2 8.6c0 3.4 2.8 6.2 6.2 6.2l.9-1.4-1.8-.9-.9.9c-1.1-.5-2.3-1.7-2.8-2.8l.9-.9-.9-1.8z" fill="currentColor" stroke="none"></path></svg></span>
+<span class="lg-soc disabled-share" aria-disabled="true" title="Compartilhamento disponível em breve" style="opacity:.28; pointer-events:none; cursor:not-allowed"><svg aria-hidden="true" fill="currentColor" height="13" viewbox="0 0 24 24" width="13"><path d="M14 8.5V6.6c0-.8.4-1.1 1.2-1.1H17V2.2h-2.7C11.6 2.2 10.6 4 10.6 6.3v2.2H8V12h2.6v9.8H14V12h2.6l.5-3.5z"></path></svg></span>
+<span class="lg-soc disabled-share" aria-disabled="true" title="Compartilhamento disponível em breve" style="opacity:.28; pointer-events:none; cursor:not-allowed"><svg aria-hidden="true" fill="none" height="14" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="14"><rect height="17" rx="5" width="17" x="3.5" y="3.5"></rect><circle cx="12" cy="12" r="3.8"></circle></svg></span>
+<span aria-label="Compartilhamento indisponível" aria-disabled="true" style="display:flex;color:#e2cbc4;padding:4px;opacity:.28;pointer-events:none"><svg aria-hidden="true" fill="none" height="18" stroke="currentColor" stroke-width="1.6" viewbox="0 0 24 24" width="18"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"></path></svg></span>
+</span>
+</div>
+</article>
+
+</div>
+</div>
+</section>
+<!-- TEMAS -->
+<section id="temas" style="position: relative; aspect-ratio: 1024 / 146; display: flex; flex-direction: column; justify-content: center">
+<div style="width: 100%; box-sizing: border-box; max-width: 1100px; margin: 0 auto; padding: 8px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 28px">
+<div style="flex: 1 1 360px; min-width: 0; display: flex; align-items: center; justify-content: center; padding-left: 40px; position: relative">
+<h2 style="margin: 0; font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 27px; line-height: 1.2; color: #e8bfb3; text-align: center">Temas que você encontra<br/>nas minhas histórias</h2>
+</div>
+<ul class="lg-divider" style="flex: 2 1 560px; min-width: 0; list-style: none; margin: 0; padding: 4px 0 4px 24px; border-left: 1px solid rgba(214,160,145,.22); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; font-size: 13.5px; color: #e0ccc6; text-align: center">
+<li class="lg-theme" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 74px"><svg aria-hidden="true" fill="none" height="32" stroke="#d2a79c" stroke-width="1.1" viewbox="0 0 24 24" width="32"><path d="M12 20s-7.5-4.6-7.5-10.3A4.2 4.2 0 0 1 12 7.2a4.2 4.2 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z"></path></svg><span style="line-height: 1.1">Sentimentos e Emoção</span></li>
+<li class="lg-theme" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 60px"><svg aria-hidden="true" fill="none" height="32" stroke="#d2a79c" stroke-width="1.1" viewbox="0 0 24 24" width="32"><path d="M20 3C12 4.5 7 10 5.5 19L4 21"></path><path d="M20 3c-1 6-5 11-12 14 2-4 4-7 6-9-3 3-5 6-6.5 9C9 10 13 5.5 20 3z"></path></svg><span>Poesia</span></li>
+<li class="lg-theme" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 66px"><svg aria-hidden="true" fill="none" height="32" stroke="#d2a79c" stroke-width="1.1" viewbox="0 0 24 24" width="34"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg><span>Suspense</span></li>
+<li class="lg-theme" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 60px"><svg aria-hidden="true" fill="#d2a79c" height="32" viewbox="0 0 24 24" width="32"><path d="M12 3a7.5 7.5 0 0 0-4.5 13.5V19a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1v-2.5A7.5 7.5 0 0 0 12 3zm-3 7.5a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6zm6 0a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6zM11 15.5l1-1.8 1 1.8z" fill-rule="evenodd"></path></svg><span>Terror</span></li>
+<li class="lg-theme" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 66px"><svg aria-hidden="true" fill="none" height="32" stroke="#d2a79c" stroke-width="1.1" viewbox="0 0 24 24" width="34"><path d="M3 18h18M4 18L3 8l5 4 4-7 4 7 5-4-1 10"></path><circle cx="12" cy="14.5" r="1"></circle><circle cx="7.5" cy="15" r=".8"></circle><circle cx="16.5" cy="15" r=".8"></circle></svg><span>Medieval</span></li>
+<li class="lg-theme" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 80px"><svg aria-hidden="true" fill="none" height="32" stroke="#d2a79c" stroke-width="1.1" viewbox="0 0 24 24" width="32"><path d="M11 4.5A3 3 0 0 0 6 6.6a3 3 0 0 0-2.4 4.6A3 3 0 0 0 5 16.5a3 3 0 0 0 4.5 2.8A2.4 2.4 0 0 0 11 20V4.5zM13 4.5a3 3 0 0 1 5 2.1 3 3 0 0 1 2.4 4.6 3 3 0 0 1-1.4 5.3 3 3 0 0 1-4.5 2.8A2.4 2.4 0 0 1 13 20V4.5z"></path><path d="M8 9.5c1 0 2 .6 2 1.8M16 9.5c-1 0-2 .6-2 1.8M7.5 14c1 .4 2 .2 2.6-.6M16.5 14c-1 .4-2 .2-2.6-.6"></path></svg><span style="line-height: 1.1">Questões Psicológicas</span></li>
+<li class="lg-theme" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 66px"><svg aria-hidden="true" fill="none" height="32" stroke="#d2a79c" stroke-width="1.1" viewbox="0 0 24 24" width="32"><path d="M12 20s-7.5-4.6-7.5-10.3A4.2 4.2 0 0 1 12 7.2a4.2 4.2 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z"></path></svg><span>Romance</span></li>
+</ul>
+</div>
+</section>
+<!-- CTA COMPARTILHAR -->
+<section id="contato" style="aspect-ratio: 1024 / 132; display: flex; flex-direction: column; justify-content: center">
+<div style="width: 100%; box-sizing: border-box; max-width: 1100px; margin: 0 auto; padding: 8px 24px">
+<div style="border: 1px solid rgba(214,160,145,.22); border-radius: 14px; background: radial-gradient(ellipse 30% 90% at 9% 50%, rgba(150,60,70,.22), transparent 70%), rgba(28,14,20,.35); padding: 26px 22px; display: flex; flex-wrap: wrap; align-items: center; gap: 28px">
+<div style="flex: 1 1 380px; min-width: 0; display: flex; align-items: center; gap: 30px">
+<svg aria-hidden="true" fill="none" height="56" stroke="#e4c6bc" stroke-width="1.4" style="flex-shrink: 0; margin-left: 12px" viewbox="0 0 70 56" width="70"><path d="M2 26L66 4 50 52 32 36z"></path><path d="M32 36L66 4"></path><path d="M32 36l-6 14 10-10"></path></svg>
+<div>
+<h2 style="margin: 0; font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 24px; color: #f0dcd5">Gostou de algum livro?</h2>
+<p style="margin: 8px 0 0; font-size: 14px; line-height: 1.4; color: #e0ccc6">Ajude a divulgar o meu trabalho!<br/>Recomende suas leituras favoritas para seus amigos:</p>
+</div>
+</div>
+<div style="flex: 1 1 520px; min-width: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 10px">
+<a class="lg-soc" href="https://wa.me/?text=Conhe%C3%A7a%20os%20livros%20de%20Larissa%20Galv%C3%A3o%3A%20https%3A%2F%2Flarissagalvao.com.br" rel="noopener" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 62px; border-radius: 8px; background: linear-gradient(180deg, #2fbf63, #1f8f49); color: #ffffff; font-size: 15px" target="_blank"><svg aria-hidden="true" fill="none" height="22" stroke="currentColor" stroke-width="1.7" viewbox="0 0 24 24" width="22"><path d="M4 20l1.3-3.8A8 8 0 1 1 8 19z"></path><path d="M9.2 8.6c0 3.4 2.8 6.2 6.2 6.2l.9-1.4-1.8-.9-.9.9c-1.1-.5-2.3-1.7-2.8-2.8l.9-.9-.9-1.8z" fill="currentColor" stroke="none"></path></svg>WhatsApp</a>
+<a class="lg-soc" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Flarissagalvao.com.br" rel="noopener" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 62px; border-radius: 8px; background: linear-gradient(180deg, #3a6fd8, #24479a); color: #ffffff; font-size: 15px" target="_blank"><svg aria-hidden="true" fill="currentColor" height="20" viewbox="0 0 24 24" width="20"><path d="M14 8.5V6.6c0-.8.4-1.1 1.2-1.1H17V2.2h-2.7C11.6 2.2 10.6 4 10.6 6.3v2.2H8V12h2.6v9.8H14V12h2.6l.5-3.5z"></path></svg>Facebook</a>
+<a class="lg-soc" href="https://instagram.com/" rel="noopener" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 62px; border-radius: 8px; background: linear-gradient(180deg, #a3399a, #6d2580); color: #ffffff; font-size: 15px" target="_blank"><svg aria-hidden="true" fill="none" height="21" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24" width="21"><rect height="17" rx="5" width="17" x="3.5" y="3.5"></rect><circle cx="12" cy="12" r="3.8"></circle><circle cx="17.3" cy="6.7" fill="currentColor" r=".6"></circle></svg>Instagram</a>
+<a class="lg-soc" href="https://t.me/share/url?url=https%3A%2F%2Flarissagalvao.com.br&amp;text=Conhe%C3%A7a%20os%20livros%20de%20Larissa%20Galv%C3%A3o" rel="noopener" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 62px; border-radius: 8px; background: linear-gradient(180deg, #2f7fc4, #1d5a93); color: #ffffff; font-size: 15px" target="_blank"><svg aria-hidden="true" fill="currentColor" height="21" viewbox="0 0 24 24" width="21"><path d="M21.5 3.5L2.8 10.7c-1 .4-1 1.6 0 1.9l4.6 1.5 1.8 5.6c.3.8 1.2 1 1.8.4l2.6-2.4 4.8 3.5c.7.5 1.6.1 1.8-.7L22.9 5c.3-1.1-.5-1.9-1.4-1.5zM9.6 14.1l8.6-7.4-6.8 8.6-.3 3z"></path></svg>Telegram</a>
+<button class="lg-soc" id="lg-share-native" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 62px; border-radius: 8px; border: none; cursor: pointer; background: linear-gradient(180deg, #5d5258, #3d3439); color: #ffffff; font-family: inherit; font-size: 15px" type="button"><svg aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24" width="20"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"></path></svg>Outras redes</button>
+</div>
+</div>
+</div>
+</section>
+<!-- FOOTER -->
+<footer style="aspect-ratio: 1024 / 112; display: flex; flex-direction: column; justify-content: center">
+<div style="width: 100%; box-sizing: border-box; max-width: 1100px; margin: 0 auto; padding: 16px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 28px">
+<div style="display: flex; align-items: flex-end; gap: 0">
+<div style="display: flex; flex-direction: column; align-items: center; line-height: 1">
+<span style="font-family: 'Cormorant Garamond', serif; font-size: 25px; font-weight: 500; color: #ead6cf">Larissa Galvão</span>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 8px; letter-spacing: 4px; color: #c9a59a; margin-top: 4px"><span style="width: 18px; height: 1px; background: #8a6a62"></span>AUTORA<span style="width: 18px; height: 1px; background: #8a6a62"></span></span>
+</div>
+<svg aria-hidden="true" fill="none" height="40" stroke="#d9b1a5" stroke-width="2" viewbox="0 0 70 90" width="30"><path d="M66 3C40 10 22 34 14 70"></path><path d="M66 3C62 24 48 46 22 62C30 46 36 34 40 26C34 38 24 52 18 60C24 36 40 16 66 3z"></path><path d="M14 70L6 87"></path></svg>
+</div>
+<nav aria-label="Rodapé" class="lg-nav" style="flex: 1 1 380px; display: flex; flex-wrap: wrap; align-items: center; gap: 14px; font-size: 14px">
+<a href="#inicio">Início</a><span style="width: 1px; height: 14px; background: rgba(214,160,145,.35)"></span>
+<a href="#sobre">Sobre a Autora</a><span style="width: 1px; height: 14px; background: rgba(214,160,145,.35)"></span>
+<a href="#livros">Livros</a><span style="width: 1px; height: 14px; background: rgba(214,160,145,.35)"></span>
+<a href="#temas">Temas</a><span style="width: 1px; height: 14px; background: rgba(214,160,145,.35)"></span>
+<a href="#contato">Contato</a>
+</nav>
+<form class="lg-divider" id="lg-news" style="flex: 1 1 340px; min-width: 0; border-left: 1px solid rgba(214,160,145,.22); padding-left: 32px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; align-items: center; gap: 14px">
+<svg aria-hidden="true" fill="none" height="20" stroke="#e4c6bc" stroke-width="1.3" viewbox="0 0 26 20" width="26"><rect height="18" rx="2" width="24" x="1" y="1"></rect><path d="M1 3l12 8 12-8"></path></svg>
+<label for="lg-email" style="font-size: 13px; line-height: 1.3; color: #e0ccc6">Receba novidades, lançamentos e<br/>conteúdos exclusivos:</label>
+</div>
+<div style="display: flex; border: 1px solid rgba(214,160,145,.4); border-radius: 6px; overflow: hidden">
+<input id="lg-email" placeholder="Seu e-mail" required="" style="flex: 1; min-width: 0; background: transparent; border: none; padding: 8px 12px; color: #f0dcd5; font-family: inherit; font-size: 13px; outline: none" type="email"/>
+<button aria-label="Inscrever" style="width: 44px; border: none; background: linear-gradient(180deg, #b78374, #8e5e52); color: #ffffff; cursor: pointer; display: flex; align-items: center; justify-content: center" type="submit"><svg aria-hidden="true" fill="none" height="18" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24" width="18"><path d="M4 12h16M14 6l6 6-6 6"></path></svg></button>
+</div>
+<span hidden="" id="lg-thanks" style="font-size: 12.5px; color: #e8bfb3">Obrigada! Você receberá as novidades no seu e-mail.</span>
+</form>
+</div>
+</footer>
+</div>
+<script>
+(function(){var site="https://larissagalvao.com.br",msg="Conheça os livros de Larissa Galvão: "+site;
+document.getElementById("lg-share-native").addEventListener("click",function(){
+ if(navigator.share){navigator.share({title:"Larissa Galvão — Autora",text:msg,url:site}).catch(function(){});}
+ else if(navigator.clipboard){navigator.clipboard.writeText(site).then(function(){alert("Link copiado!");});}});
+document.getElementById("lg-news").addEventListener("submit",function(e){e.preventDefault();document.getElementById("lg-thanks").hidden=false;this.reset();});
+})();
+</script>
+
+<style id="disabled-coming-soon-style">
+#livros .disabled-coming-soon{display:flex!important;align-items:center;justify-content:center;opacity:.55;cursor:not-allowed;pointer-events:none;filter:saturate(.55)}
+#livros .disabled-share{display:inline-flex;align-items:center;justify-content:center}
+#livros .copy-share-message{font:inherit}
+</style>
+<script id="share-message-actions">
+document.addEventListener('click', async function(event){
+  const button = event.target.closest('.copy-share-message');
+  if(!button) return;
+
+  const message = decodeURIComponent(button.dataset.shareMessage || '');
+  const originalTitle = button.title || 'Compartilhar no Instagram';
+
+  // Em celulares/navegadores compatíveis, abre a folha nativa de compartilhamento,
+  // onde o usuário pode escolher Instagram.
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: 'Indicação de leitura — Larissa Galvão',
+        text: message
+      });
+      return;
+    } catch (error) {
+      // Se o usuário cancelar, não exibe erro nem força outra ação.
+      if (error && error.name === 'AbortError') return;
+    }
+  }
+
+  // Alternativa: copia a mensagem e abre o Instagram para colar manualmente.
+  let copied = false;
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(message);
+      copied = true;
+    }
+  } catch (error) {}
+
+  if (!copied) {
+    const helper = document.createElement('textarea');
+    helper.value = message;
+    helper.setAttribute('readonly', '');
+    helper.style.position = 'fixed';
+    helper.style.left = '-9999px';
+    document.body.appendChild(helper);
+    helper.select();
+    try { copied = document.execCommand('copy'); } catch (error) {}
+    helper.remove();
+  }
+
+  if (copied) {
+    button.title = 'Mensagem copiada! Cole no Instagram.';
+    button.setAttribute('aria-label', 'Mensagem copiada. Abrir Instagram e colar.');
+    window.open('https://www.instagram.com/', '_blank', 'noopener');
+    setTimeout(function(){
+      button.title = originalTitle;
+      button.setAttribute('aria-label', 'Copiar texto para compartilhar no Instagram');
+    }, 3500);
+  } else {
+    window.prompt('Copie a mensagem para compartilhar no Instagram:', message);
+  }
+});
+</script>
+
+</body>
+</html>
+
+
+<style id="disabled-coming-soon-button-style">
+/* Botão Em breve: mesma presença do botão Comprar, em acabamento monocromático */
+#livros button.lg-out.disabled-coming-soon{
+  box-sizing:border-box!important;
+  display:flex!important;
+  width:100%!important;
+  min-height:38px!important;
+  margin-top:14px!important;
+  padding:7px 13px!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border:1px solid #777!important;
+  border-radius:12px!important;
+  background:linear-gradient(180deg,#555 0%,#292929 100%)!important;
+  color:#e2e2e2!important;
+  font-family:Georgia,serif!important;
+  font-size:14px!important;
+  font-weight:600!important;
+  line-height:1!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 2px 7px rgba(0,0,0,.28)!important;
+  opacity:.78!important;
+  cursor:not-allowed!important;
+  pointer-events:none!important;
+  filter:none!important;
+}
+#livros button.lg-out.disabled-coming-soon span{line-height:1!important}
+</style>
