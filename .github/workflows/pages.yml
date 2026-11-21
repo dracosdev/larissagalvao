@@ -1,0 +1,65 @@
+# Testa e publica o site no GitHub Pages a cada push na main.
+# O endereço publicado (github.io hoje, domínio próprio quando configurado em Settings → Pages)
+# vem do próprio GitHub Pages e é gravado nas tags de prévia do link — nada a editar ao trocar de domínio.
+# Requer uma única configuração: Settings → Pages → Build and deployment → Source: "GitHub Actions".
+name: Publicar site
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Instalar Playwright + Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.63.0
+          npx playwright install --with-deps chromium
+      - name: Testes
+        run: |
+          node tests/book-share-icons.test.js
+          node tests/responsive.test.js
+          node tests/share-links.test.js
+          node tests/site-url-deploy.test.js
+
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: pages
+        uses: actions/configure-pages@v5
+      - name: Montar site com o endereço publicado
+        run: |
+          mkdir _site
+          cp index.html _site/
+          cp -r images _site/
+          node tools/set-site-url.js "${{ steps.pages.outputs.base_url }}/" _site/index.html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
