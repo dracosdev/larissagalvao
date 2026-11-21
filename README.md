@@ -6,6 +6,7 @@ Site estático (HTML + CSS + um pouco de JS), sem build e sem dependências.
 
 ```
 index.html      # página completa (estilos inline + script no final)
+tests/          # verificações automatizadas com Playwright
 images/         # page_bg.jpg (fundo único da página inteira, sem texto), retrato e capas
 ```
 
@@ -38,3 +39,20 @@ Cada bloco (`header`, `section`, `footer`) tem `aspect-ratio` igual à fatia cor
 então o conteúdo cai exatamente sobre o trecho certo do fundo, sem emendas entre blocos.
 Em telas até 820 px a proporção é liberada e o fundo passa a cobrir a altura total da página.
 Se trocar a arte, mantenha as proporções de cada faixa (52, 278, 236, 580, 146, 132 e 112 px de altura sobre 1024 de largura).
+
+## Ícones de compartilhamento dos livros
+
+As cores dos círculos vêm de classes CSS (bloco `social-network-circles-unified` no `index.html`),
+não de estilos inline — assim cards disponíveis e "Em breve" ficam sempre iguais:
+`social-whatsapp`, `social-facebook`, `social-instagram` e `social-bookmark`.
+Ao adicionar um livro, copie a linha de compartilhamento de um card existente mantendo essas classes
+e o link final "Outras formas de compartilhar".
+
+## Testes
+
+```bash
+node tests/book-share-icons.test.js
+```
+
+Confere, em desktop, tablet e celular, que todos os cards de livros têm os mesmos ícones de
+compartilhamento (quantidade, tamanho e cor). Usa Playwright + Chromium (`npm i -D playwright` se não houver).
