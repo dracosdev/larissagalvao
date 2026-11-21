@@ -48,11 +48,30 @@ não de estilos inline — assim cards disponíveis e "Em breve" ficam sempre ig
 Ao adicionar um livro, copie a linha de compartilhamento de um card existente mantendo essas classes
 e o link final "Outras formas de compartilhar".
 
+## Responsividade
+
+| Largura | Cards de livros por linha |
+| --- | --- |
+| ≥ 1280 px | 5 |
+| 1000–1279 px | 3 (a última linha fica centralizada) |
+| 561–999 px | 2 |
+| ≤ 560 px | 1 |
+
+- Os ajustes finais ficam no bloco `<style id="responsive-usability">`, no fim do `index.html`.
+- Quando o card é estreito (≤ 310 px, via *container query*), o "Recomendar" vai para cima dos ícones em vez de ser cortado.
+- Alvos de toque têm no mínimo 24 px (WCAG 2.2), e itens do menu mobile têm 44 px.
+- No celular, o menu do rodapé dispensa o separador "|" para não sobrar um no fim da linha quando ele quebra.
+
 ## Testes
 
 ```bash
 node tests/book-share-icons.test.js
+node tests/responsive.test.js
 ```
+
+`responsive.test.js` percorre 15 larguras (320 a 1920 px) e verifica: rolagem horizontal, elementos fora da tela,
+texto `\n` solto, cards estreitos, "Recomendar" cortado ou sobreposto, ícones saindo do card, alvos de toque
+menores que 24 px e o menu mobile (abrir, tamanho dos itens, fechar com Esc). Salva screenshots em `tests/screenshots/`.
 
 Confere, em desktop, tablet e celular, que todos os cards de livros têm os mesmos ícones de
 compartilhamento (quantidade, tamanho e cor). Usa Playwright + Chromium (`npm i -D playwright` se não houver).
