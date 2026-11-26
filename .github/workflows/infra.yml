@@ -62,9 +62,9 @@ jobs:
             exit 0
           fi
           npm install --no-audit --no-fund
-          npx wrangler deploy
+          npx wrangler deploy --config wrangler.toml
           if [ -n "$SA_JSON" ]; then
-            printf '%s' "$SA_JSON" | npx wrangler secret put FIREBASE_SERVICE_ACCOUNT_JSON
+            printf '%s' "$SA_JSON" | npx wrangler secret put FIREBASE_SERVICE_ACCOUNT_JSON --config wrangler.toml
           else
             echo "::notice::FIREBASE_SERVICE_ACCOUNT_JSON ausente — Web Push ficará desativado até configurar o secret."
           fi
