@@ -15,9 +15,11 @@ function buildMockInitScript(scenario) {
       ],
       users: [
         { email: 'admin@gmail.com', name: 'Admin', isSuperAdmin: true, permissions: {} },
-        { email: 'leitor@gmail.com', name: 'Leitor', isSuperAdmin: false, permissions: { books: 'read', hero: 'write', newsletter: 'read' } }
+        { email: 'leitor@gmail.com', name: 'Leitor', isSuperAdmin: false, permissions: { books: 'read', hero: 'write', newsletter: 'read', users: 'write' } }
       ],
-      pushCampaigns: [],
+      pushCampaigns: [
+        { id: 'p0', title: 'Legado XSS', body: 'Teste link malicioso', url: 'javascript:window.__pushXss=1', sentBy: 'editor@gmail.com', sentAt: '2026-11-24T12:00:00Z' }
+      ],
       uploads: [],
       pushSubscriberCount: 42
     };
@@ -175,16 +177,29 @@ function buildMockInitScript(scenario) {
     const savedSettings = await page.evaluate(() => window.__mockStore.content.settings);
     assert.strictEqual(savedSettings.gaMeasurementId, 'G-ABC123XYZ');
 
-    // Web Push: dispara notificação e aparece no histórico
+    // Web Push: link malicioso no histórico é neutralizado e novo envio aparece no histórico
     await page.click('#sidebar-nav [data-block="push"]');
+    const unsafePushLinks = await page.$$eval('#panel-content table a', as => as.filter(a => /^javascript:/i.test(a.getAttribute('href') || '')).length);
+    assert.strictEqual(unsafePushLinks, 0, 'Link javascript: no histórico de push deveria ter sido bloqueado');
     await page.fill('#push-title', 'Novo livro no ar');
     await page.fill('#push-body', 'Confira agora na Amazon.');
     await page.fill('#push-url', 'https://www.amazon.com.br/dp/B0HSQK58HX');
     await page.click('#btn-send-push');
-    await page.waitForFunction(() => window.__mockStore.pushCampaigns.length === 1);
+    await page.waitForFunction(() => window.__mockStore.pushCampaigns.length === 2);
 
-    // Usuários: cadastra novo usuário com permissão granular
+    // SVG sanitizer via DOMParser no navegador bloqueia vetores avançados
+    const svgCheck = await page.evaluate(() => {
+      const cleaned = window.LG_CMS_CORE.sanitizeSvg(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" onload="window.__svgXss=1"><script>window.__svgXss=2</script><style>body{display:none}</style><animate attributeName="href" values="javascript:alert(1)"/><a href="javascript:alert(2)"><rect width="10" height="10"/></a><circle cx="12" cy="12" r="5"/></svg>'
+      );
+      return cleaned;
+    });
+    assert(!svgCheck.includes('onload') && !svgCheck.includes('<script') && !svgCheck.includes('<style') && !svgCheck.includes('<animate') && !svgCheck.includes('href'), 'DOMParser SVG sanitizer falhou no navegador');
+    assert(svgCheck.includes('<circle'), 'DOMParser SVG sanitizer removeu elemento seguro');
+
+    // Usuários: cadastra novo usuário com permissão granular (users sempre desabilitado para não-superadmins)
     await page.click('#sidebar-nav [data-block="users"]');
+    assert.strictEqual(await page.isDisabled('[data-perm-block="users"]'), true, 'permissão users deve ficar desabilitada para colaboradores');
     await page.fill('#u-email', 'marketing@gmail.com');
     await page.fill('#u-name', 'Equipe MKT');
     await page.selectOption('[data-perm-block="newsletter"]', 'write');
@@ -199,7 +214,7 @@ function buildMockInitScript(scenario) {
   }
 
   await browser.close();
-  console.log('OK — painel admin validado (acesso negado, RBAC por bloco, CRUD completo, R2, CSV, Push e Usuários)');
+  console.log('OK — painel admin validado (acesso negado, RBAC por bloco, CRUD completo, R2, CSV, Push, SVG DOMParser e Usuários)');
 })().catch(err => {
   console.error(err);
   process.exit(1);

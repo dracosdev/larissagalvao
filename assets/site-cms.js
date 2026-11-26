@@ -146,7 +146,7 @@
       var mark = isAmazon
         ? '<svg class="amazon-mark" viewBox="0 0 42 30" aria-hidden="true" focusable="false"><text x="8" y="20" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" fill="#fff4e8">a</text><path d="M7 23c8 5.2 19.5 5.2 28 .2" fill="none" stroke="#f2a847" stroke-width="2.3" stroke-linecap="round"/><path d="m30.7 20.7 5 2.5-5.4 1.6" fill="none" stroke="#f2a847" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
         : "";
-      ctaHtml = '<a class="lg-out" href="' + core.escapeHtml(buyUrl) + '" rel="noopener" target="_blank">' + mark + "<span>" + core.escapeHtml(buyLabel) + "</span></a>";
+      ctaHtml = '<a class="lg-out" href="' + core.escapeHtml(buyUrl) + '" rel="noopener noreferrer" target="_blank">' + mark + "<span>" + core.escapeHtml(buyLabel) + "</span></a>";
     }
 
     var shareTarget = isComingSoon ? siteUrl() : buyUrl;
@@ -165,8 +165,8 @@
       '<div class="book-share-row" style="margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 6px">' +
       '<span class="book-share-label" style="display: flex; align-items: center; gap: 6px; color: #d6c2bc"><svg aria-hidden="true" fill="none" height="14" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"></path></svg>Recomendar</span>' +
       '<span class="book-share-icons" style="display:flex;align-items:center;gap:7px">' +
-      '<a aria-label="Recomendar pelo WhatsApp" class="lg-soc social-whatsapp" href="' + core.escapeHtml(waHref) + '" rel="noopener" target="_blank"><svg aria-hidden="true" fill="none" height="15" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="15"><path d="M4 20l1.3-3.8A8 8 0 1 1 8 19z"></path><path d="M9.2 8.6c0 3.4 2.8 6.2 6.2 6.2l.9-1.4-1.8-.9-.9.9c-1.1-.5-2.3-1.7-2.8-2.8l.9-.9-.9-1.8z" fill="currentColor" stroke="none"></path></svg></a>' +
-      '<a aria-label="Recomendar pelo Facebook" class="lg-soc social-facebook" href="' + core.escapeHtml(fbHref) + '" rel="noopener" target="_blank"><svg aria-hidden="true" fill="currentColor" height="13" viewBox="0 0 24 24" width="13"><path d="M14 8.5V6.6c0-.8.4-1.1 1.2-1.1H17V2.2h-2.7C11.6 2.2 10.6 4 10.6 6.3v2.2H8V12h2.6v9.8H14V12h2.6l.5-3.5z"></path></svg></a>' +
+      '<a aria-label="Recomendar pelo WhatsApp" class="lg-soc social-whatsapp" href="' + core.escapeHtml(waHref) + '" rel="noopener noreferrer" target="_blank"><svg aria-hidden="true" fill="none" height="15" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="15"><path d="M4 20l1.3-3.8A8 8 0 1 1 8 19z"></path><path d="M9.2 8.6c0 3.4 2.8 6.2 6.2 6.2l.9-1.4-1.8-.9-.9.9c-1.1-.5-2.3-1.7-2.8-2.8l.9-.9-.9-1.8z" fill="currentColor" stroke="none"></path></svg></a>' +
+      '<a aria-label="Recomendar pelo Facebook" class="lg-soc social-facebook" href="' + core.escapeHtml(fbHref) + '" rel="noopener noreferrer" target="_blank"><svg aria-hidden="true" fill="currentColor" height="13" viewBox="0 0 24 24" width="13"><path d="M14 8.5V6.6c0-.8.4-1.1 1.2-1.1H17V2.2h-2.7C11.6 2.2 10.6 4 10.6 6.3v2.2H8V12h2.6v9.8H14V12h2.6l.5-3.5z"></path></svg></a>' +
       '<button type="button" aria-label="Compartilhar ' + core.escapeHtml(title) + '" title="Compartilhar" class="lg-soc native-share-book social-instagram" style="width:26px;height:26px;border:0;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer"><svg aria-hidden="true" fill="none" height="14" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14"><rect height="17" rx="5" width="17" x="3.5" y="3.5"></rect><circle cx="12" cy="12" r="3.8"></circle><circle cx="17.5" cy="6.8" r=".8" fill="currentColor" stroke="none"></circle></svg></button>' +
       '<button type="button" aria-label="Compartilhar ' + core.escapeHtml(title) + '" title="Compartilhar" class="lg-soc native-share-book social-bookmark" style="width:26px;height:26px;border:0;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer"><svg aria-hidden="true" fill="currentColor" height="14" viewBox="0 0 24 24" width="14"><path d="M3 4h18v2H3zM3 8h18v2H3zM5 12h14v9l-7-4-7 4z"></path></svg></button>' +
       '<a aria-label="Outras formas de compartilhar" href="#contato" style="display: flex; color: #e2cbc4; padding: 4px"><svg aria-hidden="true" fill="none" height="18" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" width="18"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"></path></svg></a>' +
@@ -263,6 +263,11 @@
     }
   });
 
+  function isLocalTestOrigin() {
+    var loc = window.location;
+    return loc.protocol === "file:" || loc.hostname === "localhost" || loc.hostname === "127.0.0.1";
+  }
+
   // --- Newsletter -> Firestore ---
   function firestoreProjectId() {
     return (cfg.firebase && cfg.firebase.projectId) ? String(cfg.firebase.projectId).trim() : "";
@@ -320,7 +325,7 @@
         feedback.style.color = "#e8bfb3";
       }
       try {
-        if (typeof window.LG_CUSTOM_NEWSLETTER_SAVE === "function") {
+        if (isLocalTestOrigin() && typeof window.LG_CUSTOM_NEWSLETTER_SAVE === "function") {
           await window.LG_CUSTOM_NEWSLETTER_SAVE(email);
         } else {
           await saveNewsletterToFirestore(email);
@@ -378,13 +383,13 @@
     });
     if (!subRes.ok) throw new Error("Falha ao registrar inscrição de push.");
 
-    // Registra metadados no Firestore para contagem no painel
+    // Registra metadados no Firestore para contagem no painel (create-only, sem sobrescrita pública)
     var projectId = firestoreProjectId();
     if (projectId) {
       var nowIso = new Date().toISOString();
       var docId = "sub_" + token.slice(-24).replace(/[^a-zA-Z0-9_-]/g, "");
-      fetch("https://firestore.googleapis.com/v1/projects/" + encodeURIComponent(projectId) + "/databases/(default)/documents/pushSubscribers/" + encodeURIComponent(docId), {
-        method: "PATCH",
+      fetch("https://firestore.googleapis.com/v1/projects/" + encodeURIComponent(projectId) + "/databases/(default)/documents/pushSubscribers?documentId=" + encodeURIComponent(docId), {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fields: {
@@ -436,7 +441,7 @@
         btn.disabled = true;
         if (statusEl) { statusEl.hidden = false; statusEl.textContent = "Ativando notificações..."; }
         try {
-          if (typeof window.LG_CUSTOM_PUSH_SUBSCRIBE === "function") {
+          if (isLocalTestOrigin() && typeof window.LG_CUSTOM_PUSH_SUBSCRIBE === "function") {
             await window.LG_CUSTOM_PUSH_SUBSCRIBE();
           } else {
             await subscribeToWebPush();

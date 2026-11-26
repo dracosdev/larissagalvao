@@ -46,8 +46,14 @@ O workflow `.github/workflows/infra.yml` publica automaticamente `firestore.rule
 
 ## 4. Primeiro acesso ao painel
 
-1. Abra `/admin.html` (ex.: `https://dracosdev.github.io/larissagalvao/admin.html`).
+1. Abra o painel isolado em `https://admin.larissa.zip` (o workflow público do GitHub Pages não publica `admin.html` junto ao site para manter o isolamento de origem).
 2. Clique em **Entrar com Google** com o e-mail configurado em `isBootstrapAdmin()`.
 3. Na primeira vez, salve os blocos que desejar migrar para o Firestore (os valores padrão já vêm preenchidos com o conteúdo atual do site).
-4. Em **Usuários e permissões**, cadastre outras contas Google definindo, para cada um dos 11 blocos, se o usuário tem `Sem acesso`, `Somente leitura` ou `Leitura e escrita`.
+4. Em **Usuários e permissões** (acesso exclusivo de **super-administradores**), cadastre outras contas Google definindo, para cada bloco editorial, se o usuário tem `Sem acesso`, `Somente leitura` ou `Leitura e escrita`.
 5. Em **Newsletter**, você pode importar os e-mails antigos da planilha do Google Sheets usando **Importar CSV** e baixar a lista atualizada a qualquer momento em **Baixar CSV**.
+
+## 5. Checklist de segurança nos consoles (custo zero)
+
+- **Google Cloud / Firebase**: restrinja a Web API Key (`assets/config.js`) por **HTTP Referrers** (`https://larissa.zip/*`, `https://www.larissa.zip/*`, `https://admin.larissa.zip/*`) e somente às APIs usadas (Identity Toolkit, Firestore, Installations e FCM). Em **Authentication → Authorized domains**, mantenha apenas os domínios de produção. Prefira uma conta de serviço dedicada apenas a FCM no Worker (`FIREBASE_SERVICE_ACCOUNT_JSON`) separada da conta usada para publicar `firestore.rules`.
+- **Cloudflare**: ative **Rate Limiting** gratuito no WAF para `/push/subscribe` e `/upload`, e avalie **Cloudflare Access (Zero Trust Free Tier)** na frente de `admin.larissa.zip`.
+- **GitHub**: ative **Branch Protection** na `main` exigindo aprovação do workflow de testes.

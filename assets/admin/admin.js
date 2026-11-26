@@ -119,15 +119,15 @@
         return snap.exists() ? snap.data() : null;
       },
       saveContentBlock: async function (docId, data) {
+        // Não grava e-mail pessoal do editor na coleção pública siteContent
         var payload = Object.assign({}, data, {
-          updatedAt: new Date().toISOString(),
-          updatedBy: state.authUser ? state.authUser.email : ""
+          updatedAt: new Date().toISOString()
         });
         await fsMod.setDoc(fsMod.doc(db, "siteContent", docId), payload);
         return payload;
       },
       listNewsletter: async function () {
-        var q = fsMod.query(fsMod.collection(db, "newsletterSubscribers"), fsMod.orderBy("createdAt", "desc"));
+        var q = fsMod.query(fsMod.collection(db, "newsletterSubscribers"), fsMod.orderBy("createdAt", "desc"), fsMod.limit(1000));
         var snap = await fsMod.getDocs(q);
         return snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
       },
@@ -136,7 +136,7 @@
         var data = {
           email: core.normalizeEmail(sub.email),
           name: String(sub.name || "").trim(),
-          status: sub.status || "ativo",
+          status: sub.status === "inativo" ? "inativo" : "ativo",
           notes: String(sub.notes || "").trim(),
           source: sub.source || "admin",
           createdAt: sub.createdAt || now,
@@ -149,7 +149,7 @@
         var data = {
           email: core.normalizeEmail(sub.email),
           name: String(sub.name || "").trim(),
-          status: sub.status || "ativo",
+          status: sub.status === "inativo" ? "inativo" : "ativo",
           notes: String(sub.notes || "").trim(),
           updatedAt: new Date().toISOString()
         };
@@ -165,11 +165,13 @@
       },
       saveUser: async function (userObj) {
         var norm = core.normalizeEmail(userObj.email);
+        var perms = Object.assign(core.createEmptyPermissions(), userObj.permissions || {});
+        perms.users = "none";
         var data = {
           email: norm,
-          name: String(userObj.name || "").trim(),
+          name: String(userObj.name || "").trim().slice(0, 120),
           isSuperAdmin: Boolean(userObj.isSuperAdmin),
-          permissions: userObj.permissions || core.createEmptyPermissions(),
+          permissions: perms,
           updatedAt: new Date().toISOString(),
           updatedBy: state.authUser ? state.authUser.email : ""
         };
@@ -196,12 +198,17 @@
         return body;
       },
       listPushCampaigns: async function () {
-        var q = fsMod.query(fsMod.collection(db, "pushCampaigns"), fsMod.orderBy("sentAt", "desc"));
+        var q = fsMod.query(fsMod.collection(db, "pushCampaigns"), fsMod.orderBy("sentAt", "desc"), fsMod.limit(200));
         var snap = await fsMod.getDocs(q);
         return snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
       },
       countPushSubscribers: async function () {
-        var snap = await fsMod.getDocs(fsMod.collection(db, "pushSubscribers"));
+        var col = fsMod.collection(db, "pushSubscribers");
+        if (typeof fsMod.getCountFromServer === "function") {
+          var agg = await fsMod.getCountFromServer(col);
+          return agg.data().count;
+        }
+        var snap = await fsMod.getDocs(col);
         return snap.size;
       },
       sendPush: async function (payload) {
@@ -644,12 +651,13 @@
     var dis = writable ? "" : " disabled";
     var showSource = false;
 
+    var safeAuthorPhoto = core.sanitizeUrl(data.photoUrl || "", { allowHash: false, allowRelative: true }) || "images/portrait.png";
     container.innerHTML = readOnlyNotice(writable) + defaultNotice(loaded.isFromDb) +
       '<div class="card">' +
       '<div class="card-head"><h2 class="card-title">Bloco Sobre a Autora</h2>' +
       '<div class="row-actions card-actions-bar"><button type="button" class="btn btn-primary" id="btn-save-author"' + dis + ">Salvar alterações</button></div></div>" +
       '<div class="media-field-wrap">' +
-      '<img id="author-photo-preview" class="avatar-preview" src="' + esc(data.photoUrl || "images/portrait.png") + '" alt="Prévia da foto da autora" />' +
+      '<img id="author-photo-preview" class="avatar-preview" src="' + esc(safeAuthorPhoto) + '" alt="Prévia da foto da autora" />' +
       '<div class="media-field-controls">' +
       '<div class="field"><label for="author-photo-url">Foto da autora (URL ou upload para R2)</label>' +
       '<div class="upload-row"><input type="text" inputmode="url" autocapitalize="off" autocorrect="off" id="author-photo-url" value="' + esc(data.photoUrl || "") + '"' + dis + " />" +
@@ -673,13 +681,23 @@
       "</div>" +
       '<div id="author-bio-editor" class="rt-editor" contenteditable="' + (writable ? "true" : "false") + '">' + core.sanitizeRichText(data.bioHtml || "") + "</div>" +
       '<textarea id="author-bio-source" rows="8" hidden' + dis + ">" + esc(core.sanitizeRichText(data.bioHtml || "")) + "</textarea>" +
-      '<span class="field-hint">O HTML é sanitizado automaticamente ao salvar e exibir no site para proteção contra XSS.</span>' +
+      '<span class="field-hint">O HTML é sanitizado automaticamente ao colar, salvar e exibir no site para proteção contra XSS.</span>' +
       "</div></div>";
 
     var editor = $("author-bio-editor");
     var source = $("author-bio-source");
     var photoInput = $("author-photo-url");
     var preview = $("author-photo-preview");
+
+    editor.addEventListener("paste", function (ev) {
+      if (!writable) return;
+      ev.preventDefault();
+      var cd = ev.clipboardData || window.clipboardData;
+      var html = cd ? cd.getData("text/html") : "";
+      var plain = cd ? cd.getData("text/plain") : "";
+      var safeChunk = html ? core.sanitizeRichText(html) : esc(plain).replace(/\r?\n/g, "<br>");
+      document.execCommand("insertHTML", false, safeChunk);
+    });
 
     photoInput.addEventListener("input", function () {
       var safe = core.sanitizeUrl(photoInput.value, { allowHash: false, allowRelative: true });
@@ -760,10 +778,11 @@
         }).join("");
         var collapsed = mobile && expandedIdx !== idx;
         var statusSummary = book.comingSoon ? "Em breve" : (book.buyLabel || "Comprar");
+        var safeCover = core.sanitizeUrl(book.coverUrl || "", { allowHash: false, allowRelative: true }) || "images/cover1.jpg";
         return '<div class="item-card' + (collapsed ? " is-collapsed" : "") + '" data-idx="' + idx + '">' +
           '<div class="item-card-head">' +
           '<div class="item-head-main">' +
-          (collapsed ? '<img src="' + esc(book.coverUrl || "images/cover1.jpg") + '" alt="" style="width:34px;height:46px;object-fit:cover;border-radius:4px;border:1px solid var(--border);flex-shrink:0" />' : "") +
+          (collapsed ? '<img src="' + esc(safeCover) + '" alt="" style="width:34px;height:46px;object-fit:cover;border-radius:4px;border:1px solid var(--border);flex-shrink:0" />' : "") +
           '<div class="item-head-text">' +
           '<span class="item-index">Livro #' + (idx + 1) + (book.title ? " — " + esc(book.title) : "") + "</span>" +
           '<span class="item-summary">' + esc(statusSummary) + "</span>" +
@@ -776,7 +795,7 @@
           "</div></div>" +
           '<div class="item-card-body">' +
           '<div class="media-field-wrap">' +
-          '<img class="thumb-preview" src="' + esc(book.coverUrl || "images/cover1.jpg") + '" alt="Capa" />' +
+          '<img class="thumb-preview" src="' + esc(safeCover) + '" alt="Capa" />' +
           '<div class="media-field-controls">' +
           '<div class="field"><label>Capa do livro (URL ou upload para R2)</label><div class="upload-row">' +
           '<input type="text" inputmode="url" autocapitalize="off" autocorrect="off" data-field="coverUrl" data-idx="' + idx + '" value="' + esc(book.coverUrl || "") + '"' + dis + " />" +
@@ -1125,15 +1144,25 @@
         $("input-import-csv").addEventListener("change", async function () {
           var file = this.files && this.files[0];
           if (!file) return;
+          if (file.size > 2 * 1024 * 1024) {
+            showToast("Arquivo CSV excede o limite de 2 MB.", "error");
+            this.value = "";
+            return;
+          }
           try {
             var text = await file.text();
             var parsed = core.parseNewsletterCsv(text);
+            if (parsed.length > 2000) {
+              showToast("Limite de 2.000 registros por importação CSV.", "error");
+              return;
+            }
             var existing = {};
             state.newsletter.forEach(function (s) { existing[core.normalizeEmail(s.email)] = true; });
             var imported = 0;
             for (var i = 0; i < parsed.length; i++) {
               if (existing[parsed[i].email]) continue;
-              await state.adapter.createNewsletter(Object.assign({}, parsed[i], { source: "csv_import" }));
+              var normStatus = parsed[i].status === "inativo" ? "inativo" : "ativo";
+              await state.adapter.createNewsletter(Object.assign({}, parsed[i], { status: normStatus, source: "csv_import" }));
               existing[parsed[i].email] = true;
               imported++;
             }
@@ -1227,9 +1256,11 @@
 
     function draw() {
       var historyRows = state.pushCampaigns.map(function (c) {
+        var safePushUrl = core.sanitizeUrl(c.url || "", { allowHash: false, allowRelative: false });
+        if (safePushUrl && !/^https:\/\//i.test(safePushUrl)) safePushUrl = "";
         return "<tr>" +
           '<td data-label="Notificação"><strong>' + esc(c.title) + '</strong><div class="field-hint">' + esc(c.body) + "</div></td>" +
-          '<td data-label="Link">' + (c.url ? '<a href="' + esc(c.url) + '" target="_blank" rel="noopener">Abrir</a>' : "—") + "</td>" +
+          '<td data-label="Link">' + (safePushUrl ? '<a href="' + esc(safePushUrl) + '" target="_blank" rel="noopener noreferrer">Abrir</a>' : "—") + "</td>" +
           '<td data-label="Enviado por">' + esc(c.sentBy || "—") + "</td>" +
           '<td data-label="Data">' + esc(c.sentAt ? String(c.sentAt).replace("T", " ").slice(0, 16) : "—") + "</td>" +
           "</tr>";
@@ -1271,6 +1302,17 @@
             showToast("Preencha o título e a mensagem da notificação.", "error");
             return;
           }
+          if (url && !/^https:\/\//i.test(url)) {
+            showToast("A URL de destino deve começar com https://.", "error");
+            return;
+          }
+          if (iconUrl && !/^https:\/\//i.test(iconUrl)) {
+            showToast("A URL do ícone deve começar com https://.", "error");
+            return;
+          }
+          if (!window.confirm("Disparar esta notificação Web Push para todos os dispositivos inscritos?")) {
+            return;
+          }
           var btn = this;
           btn.disabled = true;
           try {
@@ -1288,11 +1330,15 @@
     draw();
   }
 
-  // --- 9c: Gestão de Usuários e Permissões Granulares ---
+  // --- 9c: Gestão de Usuários e Permissões Granulares (exclusivo de Super-Administradores) ---
   async function renderUsersSection(writable) {
-    state.users = await state.adapter.listUsers();
     var container = $("panel-content");
     var superAdmin = userIsSuperAdmin();
+    if (!superAdmin) {
+      container.innerHTML = '<div class="alert alert-error">A gestão de usuários e permissões é restrita a super-administradores.</div>';
+      return;
+    }
+    state.users = await state.adapter.listUsers();
 
     function draw() {
       var dis = writable ? "" : " disabled";
@@ -1300,8 +1346,15 @@
         ? state.users.find(function (u) { return core.normalizeEmail(u.email) === core.normalizeEmail(state.editingUserEmail); })
         : null;
       var formPerms = Object.assign(core.createEmptyPermissions(), editing && editing.permissions ? editing.permissions : {});
+      formPerms.users = "none";
 
       var permRows = core.BLOCKS.map(function (b) {
+        if (b.id === "users") {
+          return '<div class="perm-row"><span>' + esc(b.label) + ' <small class="field-hint">(somente super-admin)</small></span>' +
+            '<select data-perm-block="users" data-level="none" disabled>' +
+            '<option value="none" selected>Somente super-admin</option>' +
+            "</select></div>";
+        }
         var val = formPerms[b.id] || "none";
         return '<div class="perm-row"><span>' + esc(b.label) + "</span>" +
           '<select data-perm-block="' + esc(b.id) + '" data-level="' + esc(val) + '"' + dis + ">" +
@@ -1314,13 +1367,13 @@
       var userRows = state.users.map(function (u) {
         var summary = u.isSuperAdmin
           ? '<span class="badge badge-write">Super-admin (acesso total)</span>'
-          : core.BLOCKS.filter(function (b) { return u.permissions && u.permissions[b.id] && u.permissions[b.id] !== "none"; })
+          : core.BLOCKS.filter(function (b) { return b.id !== "users" && u.permissions && u.permissions[b.id] && u.permissions[b.id] !== "none"; })
               .map(function (b) {
                 var lvl = u.permissions[b.id];
                 return '<span class="tag-pill">' + esc(b.label) + ": " + (lvl === "write" ? "E" : "L") + "</span>";
               }).join(" ") || '<span class="field-hint">Sem blocos</span>';
 
-        var canEditRow = writable && (superAdmin || !u.isSuperAdmin);
+        var canEditRow = writable && superAdmin;
         return "<tr>" +
           '<td data-label="Conta Google"><strong>' + esc(u.email) + '</strong><div class="field-hint">' + esc(u.name || "") + "</div></td>" +
           '<td data-label="Permissões"><div class="tag-preview">' + summary + "</div></td>" +
@@ -1339,9 +1392,7 @@
             '<div class="field"><label for="u-email">E-mail da conta Google</label><input type="email" inputmode="email" autocapitalize="off" autocorrect="off" id="u-email" value="' + esc(editing ? editing.email : "") + '"' + (editing ? " disabled" : "") + ' placeholder="usuario@gmail.com" /></div>' +
             '<div class="field"><label for="u-name">Nome</label><input type="text" id="u-name" value="' + esc(editing ? editing.name : "") + '" placeholder="Nome do colaborador" /></div>' +
             "</div>" +
-            (superAdmin
-              ? '<label class="checkbox-row"><input type="checkbox" id="u-super"' + (editing && editing.isSuperAdmin ? " checked" : "") + " /> <span>Super-administrador (leitura e escrita em todos os blocos)</span></label>"
-              : "") +
+            '<label class="checkbox-row"><input type="checkbox" id="u-super"' + (editing && editing.isSuperAdmin ? " checked" : "") + " /> <span>Super-administrador (acesso total, incluindo gestão de usuários)</span></label>" +
             '<div class="row-actions" style="margin:8px 0 12px">' +
             '<span class="field-hint">Atalhos:</span>' +
             '<button type="button" class="btn btn-ghost btn-sm" data-perm-preset="read">Todos leitura</button>' +
@@ -1362,6 +1413,7 @@
           $("btn-cancel-user").addEventListener("click", function () { state.editingUserEmail = null; draw(); });
         }
         container.querySelectorAll("[data-perm-block]").forEach(function (sel) {
+          if (sel.disabled) return;
           sel.addEventListener("change", function () {
             sel.setAttribute("data-level", sel.value);
           });
@@ -1370,6 +1422,7 @@
           btn.addEventListener("click", function () {
             var preset = btn.dataset.permPreset;
             container.querySelectorAll("[data-perm-block]").forEach(function (sel) {
+              if (sel.disabled) return;
               sel.value = preset;
               sel.setAttribute("data-level", preset);
             });
@@ -1380,8 +1433,10 @@
           if (!core.isValidEmail(email)) { showToast("Informe um e-mail Google válido.", "error"); return; }
           var perms = core.createEmptyPermissions();
           container.querySelectorAll("[data-perm-block]").forEach(function (sel) {
+            if (sel.dataset.permBlock === "users" || sel.disabled) return;
             perms[sel.dataset.permBlock] = sel.value;
           });
+          perms.users = "none";
           var isSuper = superAdmin && $("u-super") ? $("u-super").checked : false;
           try {
             await state.adapter.saveUser({
@@ -1461,9 +1516,12 @@
 
   function wireShellEvents() {
     if (cfg.siteUrl) {
-      document.querySelectorAll('a[href="./"]').forEach(function (a) {
-        a.href = cfg.siteUrl;
-      });
+      var safeSiteUrl = core.sanitizeUrl(cfg.siteUrl, { allowHash: false, allowRelative: false });
+      if (safeSiteUrl) {
+        document.querySelectorAll('a[href="./"]').forEach(function (a) {
+          a.href = safeSiteUrl;
+        });
+      }
     }
     $("sidebar-nav").addEventListener("click", function (ev) {
       var btn = ev.target.closest("[data-block]");
@@ -1511,9 +1569,14 @@
     });
   }
 
+  function isLocalTestOrigin() {
+    var loc = window.location;
+    return loc.protocol === "file:" || loc.hostname === "localhost" || loc.hostname === "127.0.0.1";
+  }
+
   async function init() {
     wireShellEvents();
-    if (window.LG_ADMIN_ADAPTER) {
+    if (isLocalTestOrigin() && window.LG_ADMIN_ADAPTER) {
       state.adapter = window.LG_ADMIN_ADAPTER;
       state.adapter.onAuthStateChanged(handleAuthChange);
       return;
@@ -1532,7 +1595,9 @@
     }
   }
 
-  window.LG_ADMIN_APP = { openBlock: openBlock, getState: function () { return state; } };
+  if (isLocalTestOrigin()) {
+    window.LG_ADMIN_APP = { openBlock: openBlock, getState: function () { return state; } };
+  }
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);

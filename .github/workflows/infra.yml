@@ -16,6 +16,9 @@ on:
       - ".github/workflows/infra.yml"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: infra-${{ github.ref }}
   cancel-in-progress: false
@@ -25,8 +28,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
       - name: Publicar firestore.rules no Firebase
@@ -44,12 +47,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
-      - name: Testar Worker
-        run: node tests/worker.test.js
+      - name: Testar Worker e Segurança
+        run: |
+          node tests/worker.test.js
+          node tests/security.test.js
+      - name: Instalar dependências do Worker (sem segredos no ambiente)
+        working-directory: worker
+        run: npm ci --no-audit --no-fund
       - name: Publicar Cloudflare Worker e sincronizar segredo FCM
         working-directory: worker
         env:
@@ -61,10 +69,9 @@ jobs:
             echo "::notice::Secrets CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID não configurados — pulando deploy do Worker."
             exit 0
           fi
-          npm install --no-audit --no-fund
-          npx wrangler deploy --config wrangler.toml
+          ./node_modules/.bin/wrangler deploy --config wrangler.toml
           if [ -n "$SA_JSON" ]; then
-            printf '%s' "$SA_JSON" | npx wrangler secret put FIREBASE_SERVICE_ACCOUNT_JSON --config wrangler.toml
+            printf '%s' "$SA_JSON" | ./node_modules/.bin/wrangler secret put FIREBASE_SERVICE_ACCOUNT_JSON --config wrangler.toml
           else
             echo "::notice::FIREBASE_SERVICE_ACCOUNT_JSON ausente — Web Push ficará desativado até configurar o secret."
           fi

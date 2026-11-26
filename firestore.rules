@@ -58,14 +58,48 @@ service cloud.firestore {
         && request.resource.data.email.size() >= 5
         && request.resource.data.email.size() <= 200
         && request.resource.data.email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$')
-        && (!('status' in request.resource.data) || request.resource.data.status == 'ativo');
+        && (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size() <= 120))
+        && (!('notes' in request.resource.data) || (request.resource.data.notes is string && request.resource.data.notes.size() == 0))
+        && (!('status' in request.resource.data) || request.resource.data.status == 'ativo')
+        && (!('source' in request.resource.data) || request.resource.data.source == 'site')
+        && (!('createdAt' in request.resource.data) || (request.resource.data.createdAt is string && request.resource.data.createdAt.size() <= 40))
+        && (!('updatedAt' in request.resource.data) || (request.resource.data.updatedAt is string && request.resource.data.updatedAt.size() <= 40));
     }
 
     function isValidPushSubscriberWrite() {
       return request.resource.data.keys().hasOnly(['token', 'topic', 'userAgent', 'createdAt', 'updatedAt'])
         && request.resource.data.token is string
         && request.resource.data.token.size() >= 20
-        && request.resource.data.token.size() <= 500;
+        && request.resource.data.token.size() <= 500
+        && !request.resource.data.token.matches('.*\\s.*')
+        && (!('topic' in request.resource.data) || request.resource.data.topic == 'novidades')
+        && (!('userAgent' in request.resource.data) || (request.resource.data.userAgent is string && request.resource.data.userAgent.size() <= 200))
+        && (!('createdAt' in request.resource.data) || (request.resource.data.createdAt is string && request.resource.data.createdAt.size() <= 40))
+        && (!('updatedAt' in request.resource.data) || (request.resource.data.updatedAt is string && request.resource.data.updatedAt.size() <= 40));
+    }
+
+    function isValidAdminUserDoc(email) {
+      return request.resource.data.keys().hasOnly(['email', 'name', 'isSuperAdmin', 'permissions', 'updatedAt', 'updatedBy'])
+        && request.resource.data.email is string
+        && request.resource.data.email == email
+        && request.resource.data.isSuperAdmin is bool
+        && request.resource.data.permissions is map
+        && (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size() <= 120))
+        && (!('updatedAt' in request.resource.data) || (request.resource.data.updatedAt is string && request.resource.data.updatedAt.size() <= 40))
+        && (!('updatedBy' in request.resource.data) || (request.resource.data.updatedBy is string && request.resource.data.updatedBy.size() <= 200));
+    }
+
+    function isValidPushCampaignWrite() {
+      return request.resource.data.keys().hasOnly(['title', 'body', 'url', 'iconUrl', 'topic', 'messageId', 'sentBy', 'sentAt', 'status'])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() >= 1
+        && request.resource.data.title.size() <= 120
+        && request.resource.data.body is string
+        && request.resource.data.body.size() >= 1
+        && request.resource.data.body.size() <= 300
+        && (!('url' in request.resource.data) || (request.resource.data.url is string && request.resource.data.url.size() <= 1000 && (request.resource.data.url == '' || request.resource.data.url.matches('^https://.*'))))
+        && (!('iconUrl' in request.resource.data) || (request.resource.data.iconUrl is string && request.resource.data.iconUrl.size() <= 1000 && (request.resource.data.iconUrl == '' || request.resource.data.iconUrl.matches('^https://.*'))))
+        && (!('topic' in request.resource.data) || request.resource.data.topic == 'novidades');
     }
 
     // Conteúdo público do site (1 documento por bloco editável)
@@ -82,27 +116,26 @@ service cloud.firestore {
       allow update, delete: if hasPerm('newsletter', 'write');
     }
 
-    // Usuários autorizados do painel e suas permissões por bloco
+    // Usuários autorizados do painel e suas permissões por bloco (somente super-administradores)
     match /adminUsers/{email} {
-      allow get: if isSignedIn() && (userEmail() == email || hasPerm('users', 'read'));
-      allow list: if hasPerm('users', 'read');
-      allow create, update: if hasPerm('users', 'write')
-        && (isSuperAdmin() || request.resource.data.isSuperAdmin != true);
-      allow delete: if hasPerm('users', 'write')
-        && (isSuperAdmin() || resource.data.isSuperAdmin != true);
+      allow get: if isSignedIn() && (userEmail() == email || isSuperAdmin());
+      allow list: if isSuperAdmin();
+      allow create, update: if isSuperAdmin() && isValidAdminUserDoc(email);
+      allow delete: if isSuperAdmin();
     }
 
     // Campanhas de Web Push enviadas
     match /pushCampaigns/{docId} {
       allow read: if hasPerm('push', 'read');
-      allow create, update, delete: if hasPerm('push', 'write');
+      allow create, update: if hasPerm('push', 'write') && isValidPushCampaignWrite();
+      allow delete: if hasPerm('push', 'write');
     }
 
-    // Inscrições de Web Push (metadados para contagem no painel)
+    // Inscrições de Web Push (metadados para contagem no painel; criação pública sem sobrescrita)
     match /pushSubscribers/{docId} {
-      allow create, update: if isValidPushSubscriberWrite();
+      allow create: if isValidPushSubscriberWrite();
       allow read: if hasPerm('push', 'read');
-      allow delete: if hasPerm('push', 'write');
+      allow update, delete: if hasPerm('push', 'write');
     }
   }
 }

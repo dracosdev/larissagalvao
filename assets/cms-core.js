@@ -226,10 +226,10 @@
     var options = opts || {};
     var allowHash = options.allowHash !== false;
     var allowRelative = options.allowRelative !== false;
-    var raw = String(url == null ? "" : url).trim();
+    var raw = String(url == null ? "" : url).replace(/[\u0000-\u001F\u007F]+/g, "").trim();
     if (!raw) return "";
-    // Remove control characters / whitespace obfuscation before checking protocol
-    var compact = raw.replace(/[\u0000-\u001F\u007F\s]+/g, "");
+    // Remove whitespace obfuscation before checking protocol or protocol-relative paths
+    var compact = raw.replace(/\s+/g, "");
     if (allowHash && raw.charAt(0) === "#") {
       return /^#[A-Za-z0-9_-]+$/.test(raw) ? raw : "";
     }
@@ -244,7 +244,7 @@
       }
       return "";
     }
-    if (allowRelative && !/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(compact) && !raw.startsWith("//")) {
+    if (allowRelative && !/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(compact) && !/^(\/\/|\/\\|\\)/.test(compact)) {
       return raw;
     }
     return "";
@@ -351,17 +351,188 @@
     return sanitizeRichTextFallback(html);
   }
 
+  var ALLOWED_SVG_TAGS = {
+    svg: true, g: true, path: true, circle: true, ellipse: true, rect: true,
+    line: true, polyline: true, polygon: true, defs: true,
+    lineargradient: true, radialgradient: true, stop: true, clippath: true,
+    title: true, desc: true
+  };
+
+  var ALLOWED_SVG_ATTRS = {
+    xmlns: true, viewbox: true, width: true, height: true,
+    fill: true, "fill-opacity": true, "fill-rule": true, "clip-rule": true, "clip-path": true,
+    stroke: true, "stroke-width": true, "stroke-linecap": true, "stroke-linejoin": true,
+    "stroke-miterlimit": true, "stroke-dasharray": true, "stroke-dashoffset": true, "stroke-opacity": true,
+    opacity: true, d: true, cx: true, cy: true, r: true, rx: true, ry: true,
+    x: true, y: true, x1: true, y1: true, x2: true, y2: true, points: true,
+    transform: true, offset: true, "stop-color": true, "stop-opacity": true,
+    id: true, "aria-hidden": true, role: true, focusable: true,
+    preserveaspectratio: true, gradientunits: true, gradienttransform: true
+  };
+
+  var SVG_ATTR_CANONICAL = {
+    viewbox: "viewBox",
+    preserveaspectratio: "preserveAspectRatio",
+    gradientunits: "gradientUnits",
+    gradienttransform: "gradientTransform"
+  };
+
+  function decodeXmlEntities(str) {
+    return String(str || "")
+      .replace(/&#x([0-9a-f]+);?/gi, function (_, hex) {
+        var code = parseInt(hex, 16);
+        return Number.isFinite(code) ? String.fromCodePoint(code) : "";
+      })
+      .replace(/&#([0-9]+);?/g, function (_, dec) {
+        var code = parseInt(dec, 10);
+        return Number.isFinite(code) ? String.fromCodePoint(code) : "";
+      })
+      .replace(/&quot;/gi, '"')
+      .replace(/&apos;/gi, "'")
+      .replace(/&lt;/gi, "<")
+      .replace(/&gt;/gi, ">")
+      .replace(/&amp;/gi, "&");
+  }
+
+  function isSafeSvgAttrValue(attrLower, rawValue) {
+    var val = String(rawValue == null ? "" : rawValue).trim();
+    if (!val || val.length > 4096) return false;
+    var decoded = decodeXmlEntities(val).replace(/[\u0000-\u001F\u007F]+/g, "");
+    var compact = decoded.replace(/\s+/g, "").toLowerCase();
+    if (/(javascript:|vbscript:|data:|expression\()/i.test(compact)) return false;
+    if (attrLower === "xmlns") {
+      return decoded === "http://www.w3.org/2000/svg";
+    }
+    if (compact.indexOf("url(") !== -1) {
+      return /^url\(#[-a-z0-9_]+\)$/i.test(compact);
+    }
+    return true;
+  }
+
+  function sanitizeSvgDom(raw) {
+    var parser = new DOMParser();
+    var doc = parser.parseFromString(raw, "image/svg+xml");
+    var rootEl = doc && doc.documentElement;
+    if (!rootEl || rootEl.tagName.toLowerCase() !== "svg") return "";
+    if (doc.getElementsByTagName("parsererror").length > 0) return "";
+
+    var outDoc = document.implementation.createDocument("http://www.w3.org/2000/svg", "svg", null);
+
+    function cloneSafe(srcEl, targetParent, isRoot) {
+      var tagLower = srcEl.localName ? srcEl.localName.toLowerCase() : srcEl.tagName.toLowerCase();
+      if (!ALLOWED_SVG_TAGS[tagLower]) return null;
+      var el = isRoot ? outDoc.documentElement : outDoc.createElementNS("http://www.w3.org/2000/svg", tagLower);
+
+      var attrs = Array.prototype.slice.call(srcEl.attributes || []);
+      for (var i = 0; i < attrs.length; i++) {
+        var nameLower = attrs[i].name.toLowerCase();
+        if (!ALLOWED_SVG_ATTRS[nameLower]) continue;
+        if (nameLower === "xmlns" && !isRoot) continue;
+        if (!isSafeSvgAttrValue(nameLower, attrs[i].value)) continue;
+        var canonical = SVG_ATTR_CANONICAL[nameLower] || nameLower;
+        el.setAttribute(canonical, attrs[i].value.trim());
+      }
+      if (isRoot && !el.hasAttribute("aria-hidden")) {
+        el.setAttribute("aria-hidden", "true");
+      }
+
+      var children = Array.prototype.slice.call(srcEl.childNodes || []);
+      for (var j = 0; j < children.length; j++) {
+        var child = children[j];
+        if (child.nodeType === 1) {
+          var safeChild = cloneSafe(child, el, false);
+          if (safeChild) el.appendChild(safeChild);
+        } else if (child.nodeType === 3 && (tagLower === "title" || tagLower === "desc")) {
+          var text = String(child.nodeValue || "").trim();
+          if (text) el.appendChild(outDoc.createTextNode(text));
+        }
+      }
+      return el;
+    }
+
+    var safeRoot = cloneSafe(rootEl, null, true);
+    if (!safeRoot) return "";
+    return new XMLSerializer().serializeToString(safeRoot);
+  }
+
+  function sanitizeSvgFallback(raw) {
+    // Allowlist tokenizer para Node (sem DOMParser): remove PI/DOCTYPE/comentários/CDATA e reconstrói apenas tags/atributos seguros
+    var cleaned = raw
+      .replace(/<\?[\s\S]*?\?>/g, "")
+      .replace(/<!--[\s\S]*?-->/g, "")
+      .replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, "")
+      .replace(/<!DOCTYPE[\s\S]*?>/gi, "")
+      .trim();
+    if (!/^<svg\b/i.test(cleaned) || !/<\/svg>\s*$/i.test(cleaned)) return "";
+
+    var blockedDepth = 0;
+    var stack = [];
+    var out = "";
+    var tagRe = /<(\/?)([a-zA-Z][a-zA-Z0-9:-]*)([^>]*?)(\/?)>/g;
+    var match;
+    var lastIndex = 0;
+
+    while ((match = tagRe.exec(cleaned)) !== null) {
+      var textChunk = cleaned.slice(lastIndex, match.index);
+      lastIndex = tagRe.lastIndex;
+      if (blockedDepth === 0 && stack.length && (stack[stack.length - 1] === "title" || stack[stack.length - 1] === "desc")) {
+        var trimmedText = textChunk.trim();
+        if (trimmedText) out += escapeHtml(decodeXmlEntities(trimmedText));
+      }
+
+      var isClose = match[1] === "/";
+      var tagLower = match[2].toLowerCase();
+      var rawAttrs = match[3] || "";
+      var selfClosing = match[4] === "/";
+
+      if (isClose) {
+        if (blockedDepth > 0) {
+          if (!ALLOWED_SVG_TAGS[tagLower]) blockedDepth--;
+          continue;
+        }
+        if (ALLOWED_SVG_TAGS[tagLower] && stack.length && stack[stack.length - 1] === tagLower) {
+          stack.pop();
+          out += "</" + tagLower + ">";
+        }
+        continue;
+      }
+
+      if (!ALLOWED_SVG_TAGS[tagLower]) {
+        if (!selfClosing) blockedDepth++;
+        continue;
+      }
+      if (blockedDepth > 0) continue;
+      if (stack.length === 0 && tagLower !== "svg") return "";
+
+      var safeAttrStr = "";
+      var attrRe = /([a-zA-Z_:][a-zA-Z0-9_.:-]*)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`/]+))/g;
+      var aMatch;
+      while ((aMatch = attrRe.exec(rawAttrs)) !== null) {
+        var aLower = aMatch[1].toLowerCase();
+        var aVal = aMatch[2] !== undefined ? aMatch[2] : (aMatch[3] !== undefined ? aMatch[3] : aMatch[4]);
+        if (!ALLOWED_SVG_ATTRS[aLower]) continue;
+        if (aLower === "xmlns" && stack.length > 0) continue;
+        if (!isSafeSvgAttrValue(aLower, aVal)) continue;
+        var canonical = SVG_ATTR_CANONICAL[aLower] || aLower;
+        safeAttrStr += " " + canonical + '="' + escapeHtml(decodeXmlEntities(aVal).trim()) + '"';
+      }
+
+      out += "<" + tagLower + safeAttrStr + (selfClosing ? "/>" : ">");
+      if (!selfClosing) stack.push(tagLower);
+    }
+
+    if (stack.length !== 0 || !/^<svg\b/.test(out) || !/<\/svg>$/.test(out)) return "";
+    return out;
+  }
+
   function sanitizeSvg(svg) {
     var raw = String(svg == null ? "" : svg).trim();
-    if (!raw || !/^<svg\b/i.test(raw) || !/<\/svg>\s*$/i.test(raw)) return "";
-    // Strip dangerous elements and event handlers
-    var cleaned = raw
-      .replace(/<\s*(script|foreignObject|iframe|object|embed|style)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, "")
-      .replace(/<\s*(script|foreignObject|iframe|object|embed|style)[^>]*\/?>/gi, "")
-      .replace(/\s+on[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "")
-      .replace(/\s+(?:xlink:)?href\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "");
-    if (/javascript:/i.test(cleaned)) return "";
-    return cleaned;
+    if (!raw || raw.length > 65536) return "";
+    if (!/^<svg\b/i.test(raw) || !/<\/svg>\s*$/i.test(raw)) return "";
+    if (typeof DOMParser !== "undefined" && typeof XMLSerializer !== "undefined" && typeof document !== "undefined" && document.implementation) {
+      return sanitizeSvgDom(raw);
+    }
+    return sanitizeSvgFallback(raw);
   }
 
   function createEmptyPermissions() {
@@ -376,32 +547,37 @@
     return String(email == null ? "" : email).trim().toLowerCase();
   }
 
-  function canRead(userRecord, blockId, bootstrapAdmins) {
+  function isSuperAdminUser(userRecord, bootstrapAdmins) {
     if (!userRecord) return false;
     var email = normalizeEmail(userRecord.email);
     if (Array.isArray(bootstrapAdmins) && bootstrapAdmins.map(normalizeEmail).indexOf(email) !== -1) {
       return true;
     }
-    if (userRecord.isSuperAdmin === true) return true;
+    return userRecord.isSuperAdmin === true;
+  }
+
+  function canRead(userRecord, blockId, bootstrapAdmins) {
+    if (!userRecord) return false;
+    if (isSuperAdminUser(userRecord, bootstrapAdmins)) return true;
+    // Gestão de usuários é exclusiva de super-administradores
+    if (blockId === "users") return false;
     var level = userRecord.permissions && userRecord.permissions[blockId];
     return level === "read" || level === "write";
   }
 
   function canWrite(userRecord, blockId, bootstrapAdmins) {
     if (!userRecord) return false;
-    var email = normalizeEmail(userRecord.email);
-    if (Array.isArray(bootstrapAdmins) && bootstrapAdmins.map(normalizeEmail).indexOf(email) !== -1) {
-      return true;
-    }
-    if (userRecord.isSuperAdmin === true) return true;
+    if (isSuperAdminUser(userRecord, bootstrapAdmins)) return true;
+    // Gestão de usuários é exclusiva de super-administradores
+    if (blockId === "users") return false;
     var level = userRecord.permissions && userRecord.permissions[blockId];
     return level === "write";
   }
 
   function escapeCsvCell(value) {
     var str = String(value == null ? "" : value);
-    // Proteção contra Formula Injection em planilhas (Excel/Sheets)
-    if (/^[=+\-@\t\r]/.test(str)) {
+    // Proteção contra Formula Injection em planilhas (Excel/Sheets), incluindo espaços antes de =/+/-/@
+    if (/^[=+\-@\t\r]/.test(str) || /^\s+[=+\-@]/.test(str)) {
       str = "'" + str;
     }
     if (/[",\r\n]/.test(str)) {
