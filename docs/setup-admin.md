@@ -23,28 +23,21 @@ Arquitetura 100% no free tier (Firebase Spark + Cloudflare Workers + Cloudflare 
    - Em Configurações do projeto → Contas de serviço → **Gerar nova chave privada** (baixa um `.json`).
    - **Nunca faça commit desse arquivo JSON no Git.** Ele será salvo como segredo encriptado no Cloudflare Worker no passo 2.
 
-## 2. Cloudflare R2 + Cloudflare Worker (Upload seguro de imagens e envio de Web Push)
+## 2. Deploy automatizado via GitHub Actions (Firestore Rules + Cloudflare Worker)
 
-1. No painel da [Cloudflare](https://dash.cloudflare.com), ative o **R2** (free tier: 10 GB/mês, 1M escritas, 10M leituras, egress gratuito; a Cloudflare pede cartão para ativar a conta R2).
-2. Crie o bucket e ative o acesso público de leitura:
-   ```bash
-   cd worker
-   npm install
-   npx wrangler login
-   npx wrangler r2 bucket create larissagalvao-media
-   ```
-   - No painel da Cloudflare → R2 → `larissagalvao-media` → Settings → Public Development URL (ou Custom Domain): ative e copie a URL pública (ex.: `https://pub-xxxxxxxx.r2.dev`).
-3. Edite `worker/wrangler.toml`:
-   - `FIREBASE_PROJECT_ID`: mesmo `projectId` do passo 1.
-   - `R2_PUBLIC_URL`: URL pública do bucket R2.
-   - `ALLOWED_ORIGINS`: origens do site (ex.: `https://dracosdev.github.io,https://seu-dominio.com.br,http://localhost:8080`).
-   - `BOOTSTRAP_ADMINS`: seu e-mail Google administrador (em minúsculas).
-4. Salve o JSON da conta de serviço do Firebase como segredo no Worker e publique:
-   ```bash
-   npx wrangler secret put FIREBASE_SERVICE_ACCOUNT_JSON < /caminho/para/service-account.json
-   npm run deploy
-   ```
-5. Copie a URL publicada do Worker (ex.: `https://larissagalvao-api.seu-usuario.workers.dev`) para `LG_CONFIG.workerUrl` em `assets/config.js`.
+O workflow `.github/workflows/infra.yml` publica automaticamente `firestore.rules` e o Cloudflare Worker (incluindo o segredo de Web Push) sempre que há push na `main` ou execução manual (**Actions → Publicar Infra → Run workflow**).
+
+1. No painel da [Cloudflare](https://dash.cloudflare.com):
+   - Ative **R2** e crie o bucket `larissagalvao-media`.
+   - No bucket `larissagalvao-media` → **Settings → Public Development URL**, ative o acesso público e copie a URL (`https://pub-....r2.dev`) para `R2_PUBLIC_URL` em `worker/wrangler.toml`.
+   - Em **My Profile → API Tokens → Create Token**, use o template **Edit Cloudflare Workers** e crie o token.
+   - Copie o **Account ID** exibido na lateral direita da tela inicial da Cloudflare.
+2. No GitHub (**Settings → Secrets and variables → Actions → New repository secret**), cadastre os 3 segredos:
+   - `FIREBASE_SERVICE_ACCOUNT_JSON`: conteúdo completo do arquivo `.json` da conta de serviço do Firebase.
+   - `CLOUDFLARE_API_TOKEN`: token criado na Cloudflare.
+   - `CLOUDFLARE_ACCOUNT_ID`: Account ID da Cloudflare.
+3. Rode o workflow **Actions → Publicar Infra (Firebase e Cloudflare Worker) → Run workflow**.
+4. Copie a URL publicada do Worker exibida no log (ex.: `https://larissagalvao-api.seu-subdominio.workers.dev`) para `LG_CONFIG.workerUrl` em `assets/config.js`.
 
 ## 3. Google Analytics (GA4)
 
