@@ -46,8 +46,18 @@ O workflow `.github/workflows/infra.yml` publica automaticamente `firestore.rule
 
 ## 4. Primeiro acesso ao painel
 
-1. Abra `/admin.html` (ex.: `https://dracosdev.github.io/larissagalvao/admin.html`).
+1. Abra o painel isolado em `https://admin.larissa.zip` (o workflow público do GitHub Pages não publica `admin.html` junto ao site para manter o isolamento de origem).
 2. Clique em **Entrar com Google** com o e-mail configurado em `isBootstrapAdmin()`.
 3. Na primeira vez, salve os blocos que desejar migrar para o Firestore (os valores padrão já vêm preenchidos com o conteúdo atual do site).
-4. Em **Usuários e permissões**, cadastre outras contas Google definindo, para cada um dos 11 blocos, se o usuário tem `Sem acesso`, `Somente leitura` ou `Leitura e escrita`.
+4. Em **Usuários e permissões** (acesso exclusivo de **super-administradores**), cadastre outras contas Google definindo, para cada bloco editorial, se o usuário tem `Sem acesso`, `Somente leitura` ou `Leitura e escrita`.
 5. Em **Newsletter**, você pode importar os e-mails antigos da planilha do Google Sheets usando **Importar CSV** e baixar a lista atualizada a qualquer momento em **Baixar CSV**.
+
+## 5. Segurança automatizada no CI e checklist nos consoles (custo zero)
+
+- **Automatizado pelo CI (`infra.yml`)**:
+  - `tools/deploy-firestore-rules.js` publica `firestore.rules` na `main`.
+  - `tools/harden-firebase-config.js` sincroniza automaticamente **Firebase Auth → Authorized domains** (apenas `larissa.zip`, `www.larissa.zip`, `admin.larissa.zip`, `*.firebaseapp.com` e `*.web.app`) e aplica restrições de **HTTP Referrers e APIs na Web API Key** (se a conta de serviço tiver a role `API Keys Admin`; caso contrário, emite aviso no log).
+  - O workflow aceita o secret opcional `FIREBASE_FCM_SERVICE_ACCOUNT_JSON` (conta dedicada apenas a FCM no Worker), com fallback automático para `FIREBASE_SERVICE_ACCOUNT_JSON`.
+  - `admin.larissa.zip` recebe os cabeçalhos HTTP de `_admin/_headers` automaticamente via **Cloudflare Workers Builds** (Git integration).
+- **Manual no painel Cloudflare**: ative 1 regra gratuita de **Rate Limiting (WAF)** para `/push/subscribe` e `/upload`, e avalie **Cloudflare Access (Zero Trust Free Tier)** na frente de `admin.larissa.zip`.
+- **GitHub**: Branch Protection ativa na `main` exigindo aprovação do check `test` e bloqueando force push.

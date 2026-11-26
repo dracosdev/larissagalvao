@@ -22,9 +22,21 @@ importScripts("https://www.gstatic.com/firebasejs/11.10.0/firebase-messaging-com
     });
   }
 
+  function safeNotificationUrl(rawUrl) {
+    var str = String(rawUrl || "").trim();
+    if (!str) return "./";
+    try {
+      var resolved = new URL(str, self.location.origin);
+      if (resolved.protocol === "https:" || resolved.origin === self.location.origin) {
+        return resolved.href;
+      }
+    } catch (e) {}
+    return "./";
+  }
+
   self.addEventListener("notificationclick", function (event) {
     event.notification.close();
-    var targetUrl = (event.notification.data && event.notification.data.url) || "./";
+    var targetUrl = safeNotificationUrl(event.notification.data && event.notification.data.url);
     event.waitUntil(
       clients.matchAll({ type: "window", includeUncontrolled: true }).then(function (windowClients) {
         for (var i = 0; i < windowClients.length; i++) {

@@ -12,11 +12,17 @@ bucket_name = "larissagalvao-media"
 FIREBASE_PROJECT_ID = "larissa-galvao-site"
 # URL pública do bucket R2 (ex.: https://pub-xxxxxxxxxxxxxxxx.r2.dev ou subdomínio próprio)
 R2_PUBLIC_URL = "https://pub-f41ed604a71f4a6a9670da4c8368e363.r2.dev"
-# Origens permitidas no CORS (separadas por vírgula)
-ALLOWED_ORIGINS = "https://larissa.zip,https://www.larissa.zip,https://admin.larissa.zip,https://dracosdev.github.io,http://localhost:8080,http://127.0.0.1:8080"
+# Origens permitidas no CORS em produção (separadas por vírgula)
+ALLOWED_ORIGINS = "https://larissa.zip,https://www.larissa.zip,https://admin.larissa.zip"
 # E-mails super-administradores iniciais (separados por vírgula, em minúsculas)
+BOOTSTRAP_ADMINS = "djmacloud@gmail.com"
+
+[env.dev.vars]
+FIREBASE_PROJECT_ID = "larissa-galvao-site"
+R2_PUBLIC_URL = "https://pub-f41ed604a71f4a6a9670da4c8368e363.r2.dev"
+ALLOWED_ORIGINS = "https://larissa.zip,https://www.larissa.zip,https://admin.larissa.zip,http://localhost:8080,http://127.0.0.1:8080"
 BOOTSTRAP_ADMINS = "djmacloud@gmail.com"
 
 # Segredo configurado via CLI (NUNCA coloque no arquivo):
 #   wrangler secret put FIREBASE_SERVICE_ACCOUNT_JSON
-# Cole o JSON da conta de serviço do Firebase (necessário apenas para Web Push via FCM).
+# Cole o JSON da conta de serviço do Firebase (preferencialmente restrita apenas a FCM).

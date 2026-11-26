@@ -9,11 +9,19 @@ import {
   checkFirestoreWritePermission,
   getGoogleAccessToken,
   validateUpload,
-  sanitizeSvgBytes
+  validateUploadBytes
 } from "./auth.js";
 
 const UPLOAD_BLOCKS = new Set(["author", "books", "socialLinks", "themes", "push"]);
 const ALLOWED_TOPICS = new Set(["novidades"]);
+const MAX_MULTIPART_BYTES = 6 * 1024 * 1024; // 6 MB teto para multipart (arquivo até 5 MB)
+
+const SECURITY_HEADERS = {
+  "X-Content-Type-Options": "nosniff",
+  "Cache-Control": "no-store",
+  "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+  "Referrer-Policy": "no-referrer"
+};
 
 function parseList(csv) {
   return String(csv || "")
@@ -22,19 +30,25 @@ function parseList(csv) {
     .filter(Boolean);
 }
 
+function isOriginAllowed(origin, env) {
+  if (!origin) return false;
+  const allowed = parseList(env.ALLOWED_ORIGINS);
+  return allowed.includes(origin);
+}
+
 function corsHeaders(request, env) {
   const origin = request.headers.get("Origin") || "";
-  const allowed = parseList(env.ALLOWED_ORIGINS);
-  const allowOrigin = !allowed.length
-    ? "*"
-    : (allowed.includes(origin) ? origin : allowed[0]);
-  return {
-    "Access-Control-Allow-Origin": allowOrigin,
+  const headers = {
     "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Authorization, Content-Type",
     "Access-Control-Max-Age": "86400",
     Vary: "Origin"
   };
+  // Fail-closed: só emite Access-Control-Allow-Origin se a origem estiver explicitamente autorizada
+  if (isOriginAllowed(origin, env)) {
+    headers["Access-Control-Allow-Origin"] = origin;
+  }
+  return headers;
 }
 
 function jsonResponse(body, status, request, env) {
@@ -42,6 +56,7 @@ function jsonResponse(body, status, request, env) {
     status,
     headers: {
       "Content-Type": "application/json; charset=utf-8",
+      ...SECURITY_HEADERS,
       ...corsHeaders(request, env)
     }
   });
@@ -63,7 +78,9 @@ function sanitizeKeySegment(name) {
 }
 
 function isSafeMediaKey(key) {
-  return /^(author|books|socialLinks|themes|push)\/[a-z0-9._-]+$/i.test(String(key || ""));
+  const str = String(key || "");
+  if (str.includes("..")) return false;
+  return /^(author|books|socialLinks|themes|push)\/[a-z0-9._-]+$/i.test(str);
 }
 
 export function createWorker(deps = {}) {
@@ -72,7 +89,7 @@ export function createWorker(deps = {}) {
   const checkPermFn = deps.checkFirestoreWritePermission || checkFirestoreWritePermission;
   const getAccessTokenFn = deps.getGoogleAccessToken || getGoogleAccessToken;
 
-  async function requireBlockWrite(request, env, block) {
+  async function requireAuth(request, env) {
     const idToken = extractBearer(request);
     if (!idToken) return { error: "Autenticação obrigatória.", status: 401 };
     let user;
@@ -81,13 +98,17 @@ export function createWorker(deps = {}) {
     } catch (err) {
       return { error: err.message || "Token inválido.", status: 401 };
     }
+    return { user, idToken };
+  }
+
+  async function checkBlockPermission(authResult, env, block) {
     const bootstrapAdmins = parseList(env.BOOTSTRAP_ADMINS);
     let allowed = false;
     try {
       allowed = await checkPermFn({
         projectId: env.FIREBASE_PROJECT_ID,
-        idToken,
-        email: user.email,
+        idToken: authResult.idToken,
+        email: authResult.user.email,
         block,
         bootstrapAdmins,
         fetchFn
@@ -98,13 +119,23 @@ export function createWorker(deps = {}) {
     if (!allowed) {
       return { error: `Sem permissão de escrita no bloco "${block}".`, status: 403 };
     }
-    return { user, idToken };
+    return authResult;
+  }
+
+  async function requireBlockWrite(request, env, block) {
+    const authResult = await requireAuth(request, env);
+    if (authResult.error) return authResult;
+    return checkBlockPermission(authResult, env, block);
   }
 
   return {
     async fetch(request, env) {
       if (request.method === "OPTIONS") {
-        return new Response(null, { status: 204, headers: corsHeaders(request, env) });
+        const origin = request.headers.get("Origin") || "";
+        if (origin && !isOriginAllowed(origin, env)) {
+          return new Response(null, { status: 403, headers: { Vary: "Origin", ...SECURITY_HEADERS } });
+        }
+        return new Response(null, { status: 204, headers: { ...SECURITY_HEADERS, ...corsHeaders(request, env) } });
       }
 
       const url = new URL(request.url);
@@ -114,11 +145,20 @@ export function createWorker(deps = {}) {
         return jsonResponse({ ok: true, service: "larissagalvao-api" }, 200, request, env);
       }
 
-      // 1. Upload seguro para Cloudflare R2
+      // 1. Upload seguro para Cloudflare R2 (autentica e valida Content-Length ANTES de ler multipart)
       if (request.method === "POST" && path === "/upload") {
         if (!env.MEDIA_BUCKET) {
           return jsonResponse({ error: "Binding MEDIA_BUCKET não configurado." }, 500, request, env);
         }
+        const contentLength = Number(request.headers.get("Content-Length") || "0");
+        if (Number.isFinite(contentLength) && contentLength > MAX_MULTIPART_BYTES) {
+          return jsonResponse({ error: "Payload excede o limite permitido." }, 413, request, env);
+        }
+        const preAuth = await requireAuth(request, env);
+        if (preAuth.error) {
+          return jsonResponse({ error: preAuth.error }, preAuth.status, request, env);
+        }
+
         let form;
         try {
           form = await request.formData();
@@ -129,7 +169,7 @@ export function createWorker(deps = {}) {
         if (!UPLOAD_BLOCKS.has(block)) {
           return jsonResponse({ error: "Bloco de destino inválido." }, 400, request, env);
         }
-        const authResult = await requireBlockWrite(request, env, block);
+        const authResult = await checkBlockPermission(preAuth, env, block);
         if (authResult.error) {
           return jsonResponse({ error: authResult.error }, authResult.status, request, env);
         }
@@ -146,9 +186,12 @@ export function createWorker(deps = {}) {
         }
 
         let bytes = new Uint8Array(await file.arrayBuffer());
-        if (info.mime === "image/svg+xml") {
-          bytes = sanitizeSvgBytes(bytes);
+        try {
+          bytes = validateUploadBytes(info.mime, bytes);
+        } catch (err) {
+          return jsonResponse({ error: err.message }, 400, request, env);
         }
+
         const slug = sanitizeKeySegment(file.name);
         const rand = crypto.randomUUID().slice(0, 8);
         const key = `${block}/${Date.now()}-${rand}-${slug}.${info.ext}`;
@@ -156,7 +199,7 @@ export function createWorker(deps = {}) {
         await env.MEDIA_BUCKET.put(key, bytes, {
           httpMetadata: {
             contentType: info.mime,
-            cacheControl: "public, max-age=31536000, immutable"
+            cacheControl: "public, max-age=86400"
           },
           customMetadata: {
             uploadedBy: authResult.user.email,
@@ -179,6 +222,10 @@ export function createWorker(deps = {}) {
         if (!env.MEDIA_BUCKET) {
           return jsonResponse({ error: "Binding MEDIA_BUCKET não configurado." }, 500, request, env);
         }
+        const preAuth = await requireAuth(request, env);
+        if (preAuth.error) {
+          return jsonResponse({ error: preAuth.error }, preAuth.status, request, env);
+        }
         let body;
         try {
           body = await request.json();
@@ -190,7 +237,7 @@ export function createWorker(deps = {}) {
           return jsonResponse({ error: "Chave de arquivo inválida." }, 400, request, env);
         }
         const block = key.split("/")[0];
-        const authResult = await requireBlockWrite(request, env, block);
+        const authResult = await checkBlockPermission(preAuth, env, block);
         if (authResult.error) {
           return jsonResponse({ error: authResult.error }, authResult.status, request, env);
         }
@@ -200,6 +247,10 @@ export function createWorker(deps = {}) {
 
       // 3. Inscrição de token FCM no tópico público (opt-in de Web Push no site)
       if (request.method === "POST" && path === "/push/subscribe") {
+        const origin = request.headers.get("Origin") || "";
+        if (!isOriginAllowed(origin, env)) {
+          return jsonResponse({ error: "Origem não autorizada." }, 403, request, env);
+        }
         let body;
         try {
           body = await request.json();
@@ -215,7 +266,7 @@ export function createWorker(deps = {}) {
           return jsonResponse({ error: "Tópico não permitido." }, 400, request, env);
         }
         if (!env.FIREBASE_SERVICE_ACCOUNT_JSON) {
-          return jsonResponse({ error: "FIREBASE_SERVICE_ACCOUNT_JSON não configurado." }, 500, request, env);
+          return jsonResponse({ error: "Serviço de Web Push não configurado." }, 500, request, env);
         }
         try {
           const accessToken = await getAccessTokenFn(env.FIREBASE_SERVICE_ACCOUNT_JSON, { fetchFn });
@@ -232,12 +283,11 @@ export function createWorker(deps = {}) {
             })
           });
           if (!subRes.ok) {
-            const detail = await subRes.text();
-            return jsonResponse({ error: `Falha ao inscrever token no FCM (${subRes.status}): ${detail}` }, 502, request, env);
+            return jsonResponse({ error: "Falha ao inscrever token no serviço de notificações." }, 502, request, env);
           }
           return jsonResponse({ ok: true, topic }, 200, request, env);
-        } catch (err) {
-          return jsonResponse({ error: err.message || "Erro ao inscrever push." }, 500, request, env);
+        } catch {
+          return jsonResponse({ error: "Erro ao processar inscrição de push." }, 500, request, env);
         }
       }
 
@@ -268,11 +318,14 @@ export function createWorker(deps = {}) {
         if (!ALLOWED_TOPICS.has(topic)) {
           return jsonResponse({ error: "Tópico não permitido." }, 400, request, env);
         }
-        if (targetUrl && !/^https?:\/\//i.test(targetUrl)) {
-          return jsonResponse({ error: "URL de destino deve começar com http:// ou https://." }, 400, request, env);
+        if (targetUrl && !/^https:\/\//i.test(targetUrl)) {
+          return jsonResponse({ error: "URL de destino deve começar com https://." }, 400, request, env);
+        }
+        if (iconUrl && !/^https:\/\//i.test(iconUrl)) {
+          return jsonResponse({ error: "URL do ícone deve começar com https://." }, 400, request, env);
         }
         if (!env.FIREBASE_SERVICE_ACCOUNT_JSON) {
-          return jsonResponse({ error: "FIREBASE_SERVICE_ACCOUNT_JSON não configurado." }, 500, request, env);
+          return jsonResponse({ error: "Serviço de Web Push não configurado." }, 500, request, env);
         }
 
         try {
@@ -285,7 +338,7 @@ export function createWorker(deps = {}) {
                 notification: {
                   title,
                   body: messageBody,
-                  ...(iconUrl && /^https?:\/\//i.test(iconUrl) ? { icon: iconUrl } : {})
+                  ...(iconUrl ? { icon: iconUrl } : {})
                 },
                 ...(targetUrl ? { fcm_options: { link: targetUrl } } : {})
               },
@@ -305,7 +358,7 @@ export function createWorker(deps = {}) {
           });
           const fcmData = await fcmRes.json().catch(() => ({}));
           if (!fcmRes.ok) {
-            return jsonResponse({ error: `Erro do FCM (${fcmRes.status}): ${JSON.stringify(fcmData)}` }, 502, request, env);
+            return jsonResponse({ error: "Falha ao enviar notificação via FCM." }, 502, request, env);
           }
           return jsonResponse({
             ok: true,
@@ -313,8 +366,8 @@ export function createWorker(deps = {}) {
             topic,
             sentBy: authResult.user.email
           }, 200, request, env);
-        } catch (err) {
-          return jsonResponse({ error: err.message || "Falha ao enviar Web Push." }, 500, request, env);
+        } catch {
+          return jsonResponse({ error: "Falha ao enviar Web Push." }, 500, request, env);
         }
       }
 

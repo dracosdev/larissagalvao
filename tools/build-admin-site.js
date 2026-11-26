@@ -24,8 +24,34 @@ fs.copyFileSync(path.join(ROOT, 'admin.html'), path.join(OUT, 'index.html'));
 copyDir(path.join(ROOT, 'assets'), path.join(OUT, 'assets'));
 copyDir(path.join(ROOT, 'images'), path.join(OUT, 'images'));
 
-// Impede indexação do subdomínio administrativo por buscadores
+// Impede indexação e aplica cabeçalhos de segurança HTTP no subdomínio administrativo
 fs.writeFileSync(path.join(OUT, 'robots.txt'), 'User-agent: *\nDisallow: /\n', 'utf8');
-fs.writeFileSync(path.join(OUT, '_headers'), '/*\n  X-Robots-Tag: noindex, nofollow\n', 'utf8');
+const csp = [
+  "default-src 'self'",
+  "script-src 'self' https://www.gstatic.com https://apis.google.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com",
+  "img-src 'self' https: data: blob:",
+  "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com https://*.workers.dev https://api.larissa.zip https://securetoken.googleapis.com",
+  "frame-src https://*.firebaseapp.com https://accounts.google.com",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  "upgrade-insecure-requests"
+].join('; ');
+
+const headers = [
+  '/*',
+  '  X-Robots-Tag: noindex, nofollow',
+  '  X-Frame-Options: DENY',
+  '  X-Content-Type-Options: nosniff',
+  '  Referrer-Policy: no-referrer',
+  '  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()',
+  '  Strict-Transport-Security: max-age=31536000; includeSubDomains',
+  `  Content-Security-Policy: ${csp}`,
+  ''
+].join('\n');
+fs.writeFileSync(path.join(OUT, '_headers'), headers, 'utf8');
 
 console.log('OK — _admin/ gerado para deploy no Cloudflare Pages');
