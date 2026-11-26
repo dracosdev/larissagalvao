@@ -11,7 +11,7 @@ on:
     branches: [main]
     paths:
       - "firestore.rules"
-      - "firebase.json"
+      - "tools/deploy-firestore-rules.js"
       - "worker/**"
       - ".github/workflows/infra.yml"
   workflow_dispatch:
@@ -31,18 +31,14 @@ jobs:
           node-version: 22
       - name: Publicar firestore.rules no Firebase
         env:
-          SA_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          FIREBASE_PROJECT_ID: larissa-galvao-site
         run: |
-          if [ -z "$SA_JSON" ]; then
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT_JSON" ]; then
             echo "::notice::Secret FIREBASE_SERVICE_ACCOUNT_JSON não configurado — pulando deploy do firestore.rules."
             exit 0
           fi
-          SA_FILE="$RUNNER_TEMP/firebase-sa.json"
-          trap 'rm -f "$SA_FILE"' EXIT
-          printf '%s' "$SA_JSON" > "$SA_FILE"
-          chmod 600 "$SA_FILE"
-          export GOOGLE_APPLICATION_CREDENTIALS="$SA_FILE"
-          npx --yes firebase-tools deploy --only firestore:rules --project larissa-galvao-site --non-interactive
+          node tools/deploy-firestore-rules.js firestore.rules
 
   deploy-cloudflare-worker:
     runs-on: ubuntu-latest

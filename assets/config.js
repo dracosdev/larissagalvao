@@ -15,7 +15,7 @@
     // Chave pública VAPID do Firebase Cloud Messaging (Configurações do Projeto -> Cloud Messaging -> Certificados Web Push)
     vapidKey: "BM7YSZ4B_S_FpTc_F_q4mMBhK2Na08oOv_ZoHwrFNq3C32RaWqK-pPuaL8sqC42RcV48TR2_0p9_ETLR3x_oH6Y",
     // URL do Cloudflare Worker responsável pelo upload no R2 e disparo de Web Push (ex.: https://larissagalvao-api.seu-subdominio.workers.dev)
-    workerUrl: "",
+    workerUrl: "https://larissagalvao-api.diogo-793.workers.dev",
     // ID de medição do Google Analytics 4 (ex.: G-XXXXXXXXXX). Pode também ser editado no painel.
     gaMeasurementId: "G-SLRE2QH5C0",
     // E-mails super-administradores (apenas conveniência de UI; a autorização real é validada nas firestore.rules e no Worker)
