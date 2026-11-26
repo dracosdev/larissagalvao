@@ -18,6 +18,8 @@
     workerUrl: "https://larissagalvao-api.diogo-793.workers.dev",
     // ID de medição do Google Analytics 4 (ex.: G-XXXXXXXXXX). Pode também ser editado no painel.
     gaMeasurementId: "G-SLRE2QH5C0",
+    // URL principal do site público (usada pelos botões "Ver site" / "Voltar ao site" quando o painel roda em subdomínio próprio)
+    siteUrl: "https://larissa.zip",
     // E-mails super-administradores (apenas conveniência de UI; a autorização real é validada nas firestore.rules e no Worker)
     bootstrapAdmins: ["djmacloud@gmail.com"]
   };

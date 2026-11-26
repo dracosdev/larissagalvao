@@ -1362,6 +1362,11 @@
   }
 
   function wireShellEvents() {
+    if (cfg.siteUrl) {
+      document.querySelectorAll('a[href="./"]').forEach(function (a) {
+        a.href = cfg.siteUrl;
+      });
+    }
     $("sidebar-nav").addEventListener("click", function (ev) {
       var btn = ev.target.closest("[data-block]");
       if (btn) openBlock(btn.dataset.block);

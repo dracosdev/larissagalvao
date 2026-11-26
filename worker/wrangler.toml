@@ -13,7 +13,7 @@ FIREBASE_PROJECT_ID = "larissa-galvao-site"
 # URL pública do bucket R2 (ex.: https://pub-xxxxxxxxxxxxxxxx.r2.dev ou subdomínio próprio)
 R2_PUBLIC_URL = "https://pub-f41ed604a71f4a6a9670da4c8368e363.r2.dev"
 # Origens permitidas no CORS (separadas por vírgula)
-ALLOWED_ORIGINS = "https://dracosdev.github.io,http://localhost:8080,http://127.0.0.1:8080"
+ALLOWED_ORIGINS = "https://larissa.zip,https://www.larissa.zip,https://admin.larissa.zip,https://dracosdev.github.io,http://localhost:8080,http://127.0.0.1:8080"
 # E-mails super-administradores iniciais (separados por vírgula, em minúsculas)
 BOOTSTRAP_ADMINS = "djmacloud@gmail.com"
 
