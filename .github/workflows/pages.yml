@@ -35,6 +35,7 @@ jobs:
           node tests/cms-core.test.js
           node tests/worker.test.js
           node tests/security.test.js
+          node tests/harden-firebase-config.test.js
           node tests/book-share-icons.test.js
           node tests/responsive.test.js
           node tests/share-links.test.js

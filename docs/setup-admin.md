@@ -52,8 +52,12 @@ O workflow `.github/workflows/infra.yml` publica automaticamente `firestore.rule
 4. Em **Usuários e permissões** (acesso exclusivo de **super-administradores**), cadastre outras contas Google definindo, para cada bloco editorial, se o usuário tem `Sem acesso`, `Somente leitura` ou `Leitura e escrita`.
 5. Em **Newsletter**, você pode importar os e-mails antigos da planilha do Google Sheets usando **Importar CSV** e baixar a lista atualizada a qualquer momento em **Baixar CSV**.
 
-## 5. Checklist de segurança nos consoles (custo zero)
+## 5. Segurança automatizada no CI e checklist nos consoles (custo zero)
 
-- **Google Cloud / Firebase**: restrinja a Web API Key (`assets/config.js`) por **HTTP Referrers** (`https://larissa.zip/*`, `https://www.larissa.zip/*`, `https://admin.larissa.zip/*`) e somente às APIs usadas (Identity Toolkit, Firestore, Installations e FCM). Em **Authentication → Authorized domains**, mantenha apenas os domínios de produção. Prefira uma conta de serviço dedicada apenas a FCM no Worker (`FIREBASE_SERVICE_ACCOUNT_JSON`) separada da conta usada para publicar `firestore.rules`.
-- **Cloudflare**: ative **Rate Limiting** gratuito no WAF para `/push/subscribe` e `/upload`, e avalie **Cloudflare Access (Zero Trust Free Tier)** na frente de `admin.larissa.zip`.
-- **GitHub**: ative **Branch Protection** na `main` exigindo aprovação do workflow de testes.
+- **Automatizado pelo CI (`infra.yml`)**:
+  - `tools/deploy-firestore-rules.js` publica `firestore.rules` na `main`.
+  - `tools/harden-firebase-config.js` sincroniza automaticamente **Firebase Auth → Authorized domains** (apenas `larissa.zip`, `www.larissa.zip`, `admin.larissa.zip`, `*.firebaseapp.com` e `*.web.app`) e aplica restrições de **HTTP Referrers e APIs na Web API Key** (se a conta de serviço tiver a role `API Keys Admin`; caso contrário, emite aviso no log).
+  - O workflow aceita o secret opcional `FIREBASE_FCM_SERVICE_ACCOUNT_JSON` (conta dedicada apenas a FCM no Worker), com fallback automático para `FIREBASE_SERVICE_ACCOUNT_JSON`.
+  - `admin.larissa.zip` recebe os cabeçalhos HTTP de `_admin/_headers` automaticamente via **Cloudflare Workers Builds** (Git integration).
+- **Manual no painel Cloudflare**: ative 1 regra gratuita de **Rate Limiting (WAF)** para `/push/subscribe` e `/upload`, e avalie **Cloudflare Access (Zero Trust Free Tier)** na frente de `admin.larissa.zip`.
+- **GitHub**: Branch Protection ativa na `main` exigindo aprovação do check `test` e bloqueando force push.

@@ -1,7 +1,8 @@
-# Publica automaticamente as regras do Firestore e o Cloudflare Worker (R2 + Web Push)
-# a cada push na main (quando arquivos de infra mudam) ou execução manual (workflow_dispatch).
-# Requer os secrets no repositório (Settings → Secrets and variables → Actions):
-#   - FIREBASE_SERVICE_ACCOUNT_JSON
+# Publica automaticamente as regras do Firestore, sincroniza hardening Firebase/GCP
+# e publica o Cloudflare Worker (R2 + Web Push) a cada push na main ou execução manual.
+# Secrets no repositório (Settings → Secrets and variables → Actions):
+#   - FIREBASE_SERVICE_ACCOUNT_JSON (deploy de regras e hardening Firebase/GCP)
+#   - FIREBASE_FCM_SERVICE_ACCOUNT_JSON (opcional, recomendado: conta mínima só para FCM no Worker)
 #   - CLOUDFLARE_API_TOKEN
 #   - CLOUDFLARE_ACCOUNT_ID
 name: Publicar Infra (Firebase e Cloudflare Worker)
@@ -11,7 +12,9 @@ on:
     branches: [main]
     paths:
       - "firestore.rules"
+      - "assets/config.js"
       - "tools/deploy-firestore-rules.js"
+      - "tools/harden-firebase-config.js"
       - "worker/**"
       - ".github/workflows/infra.yml"
   workflow_dispatch:
@@ -32,6 +35,8 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
+      - name: Testar scripts de hardening Firebase
+        run: node tests/harden-firebase-config.test.js
       - name: Publicar firestore.rules no Firebase
         env:
           FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
@@ -42,6 +47,11 @@ jobs:
             exit 0
           fi
           node tools/deploy-firestore-rules.js firestore.rules
+      - name: Sincronizar Authorized Domains e restrições da Web API Key
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          FIREBASE_PROJECT_ID: larissa-galvao-site
+        run: node tools/harden-firebase-config.js
 
   deploy-cloudflare-worker:
     runs-on: ubuntu-latest
@@ -63,7 +73,7 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          SA_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          SA_JSON: ${{ secrets.FIREBASE_FCM_SERVICE_ACCOUNT_JSON || secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
         run: |
           if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
             echo "::notice::Secrets CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID não configurados — pulando deploy do Worker."
@@ -73,5 +83,5 @@ jobs:
           if [ -n "$SA_JSON" ]; then
             printf '%s' "$SA_JSON" | ./node_modules/.bin/wrangler secret put FIREBASE_SERVICE_ACCOUNT_JSON --config wrangler.toml
           else
-            echo "::notice::FIREBASE_SERVICE_ACCOUNT_JSON ausente — Web Push ficará desativado até configurar o secret."
+            echo "::notice::FIREBASE_FCM_SERVICE_ACCOUNT_JSON / FIREBASE_SERVICE_ACCOUNT_JSON ausente — Web Push ficará desativado."
           fi
