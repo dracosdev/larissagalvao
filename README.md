@@ -126,12 +126,14 @@ node tests/share-links.test.js
 node tests/site-url-deploy.test.js
 node tests/site-cms-hydration.test.js
 node tests/admin-panel.test.js
+node tests/admin-mobile.test.js
 ```
 
 - `cms-core.test.js` valida sanitização XSS de rich text, SVG e URLs, normalização Amazon, RBAC por bloco e exportação/importação CSV.
 - `worker.test.js` testa o Cloudflare Worker com assinatura/verificação RS256 real, CORS, permissões Firestore, upload/exclusão no R2 e inscrição/envio de Web Push (FCM).
 - `site-cms-hydration.test.js` valida a hidratação dinâmica de todos os blocos no `index.html`, GA4 (`dataLayer`), newsletter e banner de Web Push.
 - `admin-panel.test.js` valida login, tela de acesso negado, RBAC por bloco (leitura vs. leitura/escrita), CRUD dos blocos, rich text, upload R2, newsletter, Web Push e gestão de usuários.
+- `admin-mobile.test.js` audita a usabilidade mobile do painel em 320 px e 390 px nos 11 blocos (sem overflow, inputs >= 16 px e >= 40 px, drawer, barra rápida, acordeão e tabelas em cards).
 - `responsive.test.js` percorre 15 larguras (320 a 1920 px) e verifica layout, alvos de toque e menu mobile, salvando screenshots em `tests/screenshots/`.
 - `share-links.test.js` valida os links de compartilhamento em 5 endereços simulados, área de transferência e fallback `file://`.
 - `site-url-deploy.test.js` confere as tags de prévia (`og:*`), a imagem 1200×630 e `tools/set-site-url.js`.

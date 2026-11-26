@@ -42,6 +42,7 @@
 
   <!-- Aplicação Principal do Painel -->
   <div id="admin-shell" class="admin-shell" hidden>
+    <div id="sidebar-backdrop" class="sidebar-backdrop" hidden></div>
     <aside id="admin-sidebar" class="sidebar" aria-label="Blocos do painel">
       <div class="sidebar-header">
         <div>
@@ -67,8 +68,8 @@
     <div class="workspace">
       <header class="topbar">
         <div class="topbar-left">
-          <button id="btn-sidebar-open" type="button" class="icon-btn mobile-only" aria-label="Abrir menu">☰</button>
-          <div>
+          <button id="btn-sidebar-open" type="button" class="icon-btn mobile-only" aria-label="Abrir menu" aria-expanded="false">☰</button>
+          <div class="topbar-titles">
             <h1 id="section-title" class="section-title">Painel</h1>
             <p id="section-desc" class="section-desc"></p>
           </div>
@@ -77,6 +78,8 @@
           <span id="perm-badge" class="badge"></span>
         </div>
       </header>
+
+      <nav id="mobile-block-strip" class="mobile-block-strip mobile-only" aria-label="Trocar bloco rapidamente"></nav>
 
       <div id="toast-area" class="toast-area" aria-live="polite"></div>
 

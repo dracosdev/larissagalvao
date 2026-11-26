@@ -237,12 +237,41 @@
   }
 
   // --- Navegação e Shell ---
+  var SHORT_LABELS = {
+    topMenu: "Menu topo",
+    socialLinks: "Redes",
+    hero: "Chamada",
+    author: "Autora",
+    books: "Livros",
+    themes: "Temas",
+    footerMenu: "Rodapé",
+    newsletter: "Newsletter",
+    analytics: "Analytics",
+    push: "Web Push",
+    users: "Usuários"
+  };
+
+  function isMobileViewport() {
+    return typeof window !== "undefined" && window.innerWidth <= 900;
+  }
+
+  function setSidebarOpen(open) {
+    var sb = $("admin-sidebar");
+    var backdrop = $("sidebar-backdrop");
+    var btn = $("btn-sidebar-open");
+    if (sb) sb.classList.toggle("open", Boolean(open));
+    if (backdrop) backdrop.hidden = !open;
+    if (btn) btn.setAttribute("aria-expanded", open ? "true" : "false");
+    document.body.classList.toggle("sidebar-open", Boolean(open));
+  }
+
   function getAccessibleBlocks() {
     return core.BLOCKS.filter(function (b) { return userCanRead(b.id); });
   }
 
   function renderSidebar() {
     var nav = $("sidebar-nav");
+    var strip = $("mobile-block-strip");
     var blocks = getAccessibleBlocks();
     nav.innerHTML = blocks.map(function (b) {
       var write = userCanWrite(b.id);
@@ -255,6 +284,18 @@
         "</button>";
     }).join("");
 
+    if (strip) {
+      strip.innerHTML = blocks.map(function (b) {
+        var active = state.activeBlock === b.id ? " active" : "";
+        return '<button type="button" class="strip-pill' + active + '" data-block="' + esc(b.id) + '">' +
+          esc(SHORT_LABELS[b.id] || b.label) + "</button>";
+      }).join("");
+      var activePill = strip.querySelector(".strip-pill.active");
+      if (activePill && typeof activePill.scrollIntoView === "function") {
+        activePill.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+      }
+    }
+
     $("user-name").textContent = (state.authUser && state.authUser.displayName) || "";
     $("user-email").textContent = (state.authUser && state.authUser.email) || "";
     $("user-role").textContent = userIsSuperAdmin() ? "Super-administrador" : "Usuário autorizado";
@@ -263,7 +304,7 @@
   async function openBlock(blockId) {
     if (!userCanRead(blockId)) return;
     state.activeBlock = blockId;
-    $("admin-sidebar").classList.remove("open");
+    setSidebarOpen(false);
     renderSidebar();
 
     var meta = core.BLOCKS.find(function (b) { return b.id === blockId; });
@@ -354,30 +395,39 @@
     var loaded = await loadContentOrDefault(blockId);
     var items = Array.isArray(loaded.data.items) ? loaded.data.items : [];
     var container = $("panel-content");
+    var expandedIdx = 0;
 
     function draw() {
       var dis = writable ? "" : " disabled";
+      var mobile = isMobileViewport();
       var rows = items.map(function (it, idx) {
-        return '<div class="item-card" data-idx="' + idx + '">' +
+        var collapsed = mobile && expandedIdx !== idx;
+        var summary = (it.href || "Sem destino") + (it.newTab ? " • Nova aba" : "");
+        return '<div class="item-card' + (collapsed ? " is-collapsed" : "") + '" data-idx="' + idx + '">' +
           '<div class="item-card-head">' +
-          '<span class="item-index">Item #' + (idx + 1) + "</span>" +
+          '<div class="item-head-main"><div class="item-head-text">' +
+          '<span class="item-index">#' + (idx + 1) + " — " + esc(it.label || "Novo item") + "</span>" +
+          '<span class="item-summary">' + esc(summary) + "</span>" +
+          "</div></div>" +
           '<div class="row-actions">' +
-          '<button type="button" class="btn btn-ghost btn-sm" data-act="up" data-idx="' + idx + '"' + (idx === 0 || !writable ? " disabled" : "") + ">↑</button>" +
-          '<button type="button" class="btn btn-ghost btn-sm" data-act="down" data-idx="' + idx + '"' + (idx === items.length - 1 || !writable ? " disabled" : "") + ">↓</button>" +
+          (mobile ? '<button type="button" class="btn btn-secondary btn-sm item-toggle-btn" data-act="toggle" data-idx="' + idx + '">' + (collapsed ? "Editar ▾" : "Fechar ▴") + "</button>" : "") +
+          '<button type="button" class="btn btn-ghost btn-sm" aria-label="Mover para cima" data-act="up" data-idx="' + idx + '"' + (idx === 0 || !writable ? " disabled" : "") + ">↑</button>" +
+          '<button type="button" class="btn btn-ghost btn-sm" aria-label="Mover para baixo" data-act="down" data-idx="' + idx + '"' + (idx === items.length - 1 || !writable ? " disabled" : "") + ">↓</button>" +
           '<button type="button" class="btn btn-danger btn-sm" data-act="del" data-idx="' + idx + '"' + dis + ">Excluir</button>" +
           "</div></div>" +
+          '<div class="item-card-body">' +
           '<div class="grid-2">' +
           '<div class="field"><label>Label do link</label><input type="text" data-field="label" data-idx="' + idx + '" value="' + esc(it.label || "") + '" placeholder="Ex.: Livros"' + dis + " /></div>" +
-          '<div class="field"><label>Destino (âncora ou URL)</label><input type="text" data-field="href" data-idx="' + idx + '" value="' + esc(it.href || "") + '" placeholder="Ex.: #livros ou https://..."' + dis + " /></div>" +
+          '<div class="field"><label>Destino (âncora ou URL)</label><input type="text" inputmode="url" autocapitalize="off" autocorrect="off" data-field="href" data-idx="' + idx + '" value="' + esc(it.href || "") + '" placeholder="Ex.: #livros ou https://..."' + dis + " /></div>" +
           "</div>" +
-          '<label class="checkbox-row"><input type="checkbox" data-field="newTab" data-idx="' + idx + '"' + (it.newTab ? " checked" : "") + dis + " /> Abrir em nova aba</label>" +
-          "</div>";
+          '<label class="checkbox-row"><input type="checkbox" data-field="newTab" data-idx="' + idx + '"' + (it.newTab ? " checked" : "") + dis + " /> <span>Abrir em nova aba</span></label>" +
+          "</div></div>";
       }).join("");
 
       container.innerHTML = readOnlyNotice(writable) + defaultNotice(loaded.isFromDb) +
         '<div class="card">' +
         '<div class="card-head"><h2 class="card-title">Itens do menu (' + items.length + ')</h2>' +
-        '<div class="row-actions">' +
+        '<div class="row-actions card-actions-bar">' +
         '<button type="button" class="btn btn-secondary" id="btn-add-menu"' + dis + ">+ Adicionar item</button>" +
         '<button type="button" class="btn btn-primary" id="btn-save-menu"' + dis + ">Salvar alterações</button>" +
         "</div></div>" +
@@ -393,14 +443,16 @@
       container.querySelectorAll("[data-act]").forEach(function (btn) {
         btn.addEventListener("click", function () {
           var i = Number(btn.dataset.idx);
-          if (btn.dataset.act === "up") moveItem(items, i, -1);
-          if (btn.dataset.act === "down") moveItem(items, i, 1);
-          if (btn.dataset.act === "del") items.splice(i, 1);
+          if (btn.dataset.act === "toggle") expandedIdx = (expandedIdx === i ? -1 : i);
+          if (btn.dataset.act === "up") { moveItem(items, i, -1); expandedIdx = Math.max(0, i - 1); }
+          if (btn.dataset.act === "down") { moveItem(items, i, 1); expandedIdx = Math.min(items.length - 1, i + 1); }
+          if (btn.dataset.act === "del") { items.splice(i, 1); expandedIdx = Math.min(expandedIdx, items.length - 1); }
           draw();
         });
       });
       $("btn-add-menu").addEventListener("click", function () {
         items.push({ label: "", href: "#", newTab: false });
+        expandedIdx = items.length - 1;
         draw();
       });
       $("btn-save-menu").addEventListener("click", async function () {
@@ -436,6 +488,7 @@
     var loaded = await loadContentOrDefault("socialLinks");
     var items = Array.isArray(loaded.data.items) ? loaded.data.items : [];
     var container = $("panel-content");
+    var expandedIdx = 0;
 
     function presetOptions(selected) {
       return Object.keys(core.SOCIAL_PRESETS).map(function (k) {
@@ -445,20 +498,27 @@
 
     function draw() {
       var dis = writable ? "" : " disabled";
+      var mobile = isMobileViewport();
       var rows = items.map(function (it, idx) {
         var iconType = it.iconType || "preset";
         var preview = core.renderIconHtml(it, core.SOCIAL_PRESETS, 22);
-        return '<div class="item-card" data-idx="' + idx + '">' +
+        var collapsed = mobile && expandedIdx !== idx;
+        return '<div class="item-card' + (collapsed ? " is-collapsed" : "") + '" data-idx="' + idx + '">' +
           '<div class="item-card-head">' +
-          '<div class="row-actions"><span class="icon-preview">' + preview + '</span><span class="item-index">Rede #' + (idx + 1) + "</span></div>" +
+          '<div class="item-head-main"><span class="icon-preview">' + preview + '</span><div class="item-head-text">' +
+          '<span class="item-index">#' + (idx + 1) + " — " + esc(it.label || "Nova rede") + "</span>" +
+          '<span class="item-summary">' + esc(it.href || "Sem URL") + "</span>" +
+          "</div></div>" +
           '<div class="row-actions">' +
-          '<button type="button" class="btn btn-ghost btn-sm" data-act="up" data-idx="' + idx + '"' + (idx === 0 || !writable ? " disabled" : "") + ">↑</button>" +
-          '<button type="button" class="btn btn-ghost btn-sm" data-act="down" data-idx="' + idx + '"' + (idx === items.length - 1 || !writable ? " disabled" : "") + ">↓</button>" +
+          (mobile ? '<button type="button" class="btn btn-secondary btn-sm item-toggle-btn" data-act="toggle" data-idx="' + idx + '">' + (collapsed ? "Editar ▾" : "Fechar ▴") + "</button>" : "") +
+          '<button type="button" class="btn btn-ghost btn-sm" aria-label="Mover para cima" data-act="up" data-idx="' + idx + '"' + (idx === 0 || !writable ? " disabled" : "") + ">↑</button>" +
+          '<button type="button" class="btn btn-ghost btn-sm" aria-label="Mover para baixo" data-act="down" data-idx="' + idx + '"' + (idx === items.length - 1 || !writable ? " disabled" : "") + ">↓</button>" +
           '<button type="button" class="btn btn-danger btn-sm" data-act="del" data-idx="' + idx + '"' + dis + ">Excluir</button>" +
           "</div></div>" +
+          '<div class="item-card-body">' +
           '<div class="grid-3">' +
           '<div class="field"><label>Nome / Label acessível</label><input type="text" data-field="label" data-idx="' + idx + '" value="' + esc(it.label || "") + '" placeholder="Ex.: Instagram"' + dis + " /></div>" +
-          '<div class="field"><label>URL de destino</label><input type="url" data-field="href" data-idx="' + idx + '" value="' + esc(it.href || "") + '" placeholder="https://..."' + dis + " /></div>" +
+          '<div class="field"><label>URL de destino</label><input type="url" inputmode="url" autocapitalize="off" autocorrect="off" data-field="href" data-idx="' + idx + '" value="' + esc(it.href || "") + '" placeholder="https://..."' + dis + " /></div>" +
           '<div class="field"><label>Tipo de ícone</label><select data-field="iconType" data-idx="' + idx + '"' + dis + ">" +
           '<option value="preset"' + (iconType === "preset" ? " selected" : "") + ">Ícone padrão</option>" +
           '<option value="url"' + (iconType === "url" ? " selected" : "") + ">Imagem (Upload R2 / URL)</option>" +
@@ -468,18 +528,18 @@
             ? '<div class="field"><label>Escolha o ícone</label><select data-field="iconPreset" data-idx="' + idx + '"' + dis + ">" + presetOptions(it.iconPreset || "instagram") + "</select></div>"
             : iconType === "url"
               ? '<div class="field"><label>URL do ícone (ou envie para o Cloudflare R2)</label><div class="upload-row">' +
-                '<input type="url" data-field="iconUrl" data-idx="' + idx + '" value="' + esc(it.iconUrl || "") + '" placeholder="https://..."' + dis + " />" +
-                '<label class="btn btn-secondary btn-sm">Enviar R2<input type="file" accept="image/*" data-upload-idx="' + idx + '" hidden' + dis + " /></label>" +
+                '<input type="url" inputmode="url" autocapitalize="off" autocorrect="off" data-field="iconUrl" data-idx="' + idx + '" value="' + esc(it.iconUrl || "") + '" placeholder="https://..."' + dis + " />" +
+                '<label class="btn btn-secondary btn-sm">Enviar imagem (R2)<input type="file" accept="image/*" data-upload-idx="' + idx + '" hidden' + dis + " /></label>" +
                 "</div></div>"
               : '<div class="field"><label>Código SVG (&lt;svg ...&gt;...&lt;/svg&gt;)</label><textarea data-field="iconSvg" data-idx="' + idx + '"' + dis + ">" + esc(it.iconSvg || "") + "</textarea></div>"
           ) +
-          "</div>";
+          "</div></div>";
       }).join("");
 
       container.innerHTML = readOnlyNotice(writable) + defaultNotice(loaded.isFromDb) +
         '<div class="card">' +
         '<div class="card-head"><h2 class="card-title">Redes sociais do topo (' + items.length + ')</h2>' +
-        '<div class="row-actions">' +
+        '<div class="row-actions card-actions-bar">' +
         '<button type="button" class="btn btn-secondary" id="btn-add-social"' + dis + ">+ Adicionar rede</button>" +
         '<button type="button" class="btn btn-primary" id="btn-save-social"' + dis + ">Salvar alterações</button>" +
         "</div></div>" +
@@ -507,14 +567,16 @@
       container.querySelectorAll("[data-act]").forEach(function (btn) {
         btn.addEventListener("click", function () {
           var i = Number(btn.dataset.idx);
-          if (btn.dataset.act === "up") moveItem(items, i, -1);
-          if (btn.dataset.act === "down") moveItem(items, i, 1);
-          if (btn.dataset.act === "del") items.splice(i, 1);
+          if (btn.dataset.act === "toggle") expandedIdx = (expandedIdx === i ? -1 : i);
+          if (btn.dataset.act === "up") { moveItem(items, i, -1); expandedIdx = Math.max(0, i - 1); }
+          if (btn.dataset.act === "down") { moveItem(items, i, 1); expandedIdx = Math.min(items.length - 1, i + 1); }
+          if (btn.dataset.act === "del") { items.splice(i, 1); expandedIdx = Math.min(expandedIdx, items.length - 1); }
           draw();
         });
       });
       $("btn-add-social").addEventListener("click", function () {
         items.push({ label: "", href: "", iconType: "preset", iconPreset: "globe", iconUrl: "", iconSvg: "" });
+        expandedIdx = items.length - 1;
         draw();
       });
       $("btn-save-social").addEventListener("click", async function () {
@@ -556,9 +618,9 @@
     container.innerHTML = readOnlyNotice(writable) + defaultNotice(loaded.isFromDb) +
       '<div class="card">' +
       '<div class="card-head"><h2 class="card-title">Texto de chamada principal</h2>' +
-      '<button type="button" class="btn btn-primary" id="btn-save-hero"' + dis + ">Salvar alterações</button></div>" +
+      '<div class="row-actions card-actions-bar"><button type="button" class="btn btn-primary" id="btn-save-hero"' + dis + ">Salvar alterações</button></div></div>" +
       '<div class="field"><label for="hero-tagline-input">Frase exibida no topo (use Enter para quebra de linha)</label>' +
-      '<textarea id="hero-tagline-input" rows="3"' + dis + ">" + esc(tagline) + "</textarea>" +
+      '<textarea id="hero-tagline-input" rows="4"' + dis + ">" + esc(tagline) + "</textarea>" +
       '<span class="field-hint">Cada quebra de linha será exibida exatamente na mesma posição no site.</span></div>' +
       "</div>";
 
@@ -585,13 +647,13 @@
     container.innerHTML = readOnlyNotice(writable) + defaultNotice(loaded.isFromDb) +
       '<div class="card">' +
       '<div class="card-head"><h2 class="card-title">Bloco Sobre a Autora</h2>' +
-      '<button type="button" class="btn btn-primary" id="btn-save-author"' + dis + ">Salvar alterações</button></div>" +
-      '<div class="row-actions" style="align-items:flex-start;margin-bottom:14px">' +
+      '<div class="row-actions card-actions-bar"><button type="button" class="btn btn-primary" id="btn-save-author"' + dis + ">Salvar alterações</button></div></div>" +
+      '<div class="media-field-wrap">' +
       '<img id="author-photo-preview" class="avatar-preview" src="' + esc(data.photoUrl || "images/portrait.png") + '" alt="Prévia da foto da autora" />' +
-      '<div style="flex:1;min-width:240px">' +
+      '<div class="media-field-controls">' +
       '<div class="field"><label for="author-photo-url">Foto da autora (URL ou upload para R2)</label>' +
-      '<div class="upload-row"><input type="text" id="author-photo-url" value="' + esc(data.photoUrl || "") + '"' + dis + " />" +
-      '<label class="btn btn-secondary btn-sm">Enviar R2<input type="file" id="author-photo-file" accept="image/*" hidden' + dis + " /></label></div></div>" +
+      '<div class="upload-row"><input type="text" inputmode="url" autocapitalize="off" autocorrect="off" id="author-photo-url" value="' + esc(data.photoUrl || "") + '"' + dis + " />" +
+      '<label class="btn btn-secondary btn-sm">Enviar foto (R2)<input type="file" id="author-photo-file" accept="image/*" hidden' + dis + " /></label></div></div>" +
       '<div class="field"><label for="author-photo-alt">Texto alternativo da foto (acessibilidade)</label>' +
       '<input type="text" id="author-photo-alt" value="' + esc(data.photoAlt || "") + '"' + dis + " /></div>" +
       "</div></div>" +
@@ -686,28 +748,39 @@
     var sectionTitle = loaded.data.sectionTitle || "Livros em Destaque";
     var items = Array.isArray(loaded.data.items) ? loaded.data.items : [];
     var container = $("panel-content");
+    var expandedIdx = 0;
 
     function draw() {
       var dis = writable ? "" : " disabled";
+      var mobile = isMobileViewport();
       var cards = items.map(function (book, idx) {
         var tagsStr = Array.isArray(book.tags) ? book.tags.join(", ") : "";
         var pills = (Array.isArray(book.tags) ? book.tags : []).map(function (t) {
           return '<span class="tag-pill">' + esc(t) + "</span>";
         }).join("");
-        return '<div class="item-card" data-idx="' + idx + '">' +
+        var collapsed = mobile && expandedIdx !== idx;
+        var statusSummary = book.comingSoon ? "Em breve" : (book.buyLabel || "Comprar");
+        return '<div class="item-card' + (collapsed ? " is-collapsed" : "") + '" data-idx="' + idx + '">' +
           '<div class="item-card-head">' +
+          '<div class="item-head-main">' +
+          (collapsed ? '<img src="' + esc(book.coverUrl || "images/cover1.jpg") + '" alt="" style="width:34px;height:46px;object-fit:cover;border-radius:4px;border:1px solid var(--border);flex-shrink:0" />' : "") +
+          '<div class="item-head-text">' +
           '<span class="item-index">Livro #' + (idx + 1) + (book.title ? " — " + esc(book.title) : "") + "</span>" +
+          '<span class="item-summary">' + esc(statusSummary) + "</span>" +
+          "</div></div>" +
           '<div class="row-actions">' +
-          '<button type="button" class="btn btn-ghost btn-sm" data-act="up" data-idx="' + idx + '"' + (idx === 0 || !writable ? " disabled" : "") + ">↑</button>" +
-          '<button type="button" class="btn btn-ghost btn-sm" data-act="down" data-idx="' + idx + '"' + (idx === items.length - 1 || !writable ? " disabled" : "") + ">↓</button>" +
+          (mobile ? '<button type="button" class="btn btn-secondary btn-sm item-toggle-btn" data-act="toggle" data-idx="' + idx + '">' + (collapsed ? "Editar ▾" : "Fechar ▴") + "</button>" : "") +
+          '<button type="button" class="btn btn-ghost btn-sm" aria-label="Mover para cima" data-act="up" data-idx="' + idx + '"' + (idx === 0 || !writable ? " disabled" : "") + ">↑</button>" +
+          '<button type="button" class="btn btn-ghost btn-sm" aria-label="Mover para baixo" data-act="down" data-idx="' + idx + '"' + (idx === items.length - 1 || !writable ? " disabled" : "") + ">↓</button>" +
           '<button type="button" class="btn btn-danger btn-sm" data-act="del" data-idx="' + idx + '"' + dis + ">Excluir</button>" +
           "</div></div>" +
-          '<div class="row-actions" style="align-items:flex-start;margin-bottom:10px">' +
+          '<div class="item-card-body">' +
+          '<div class="media-field-wrap">' +
           '<img class="thumb-preview" src="' + esc(book.coverUrl || "images/cover1.jpg") + '" alt="Capa" />' +
-          '<div style="flex:1;min-width:240px">' +
+          '<div class="media-field-controls">' +
           '<div class="field"><label>Capa do livro (URL ou upload para R2)</label><div class="upload-row">' +
-          '<input type="text" data-field="coverUrl" data-idx="' + idx + '" value="' + esc(book.coverUrl || "") + '"' + dis + " />" +
-          '<label class="btn btn-secondary btn-sm">Enviar R2<input type="file" accept="image/*" data-upload-idx="' + idx + '" hidden' + dis + " /></label>" +
+          '<input type="text" inputmode="url" autocapitalize="off" autocorrect="off" data-field="coverUrl" data-idx="' + idx + '" value="' + esc(book.coverUrl || "") + '"' + dis + " />" +
+          '<label class="btn btn-secondary btn-sm">Enviar capa (R2)<input type="file" accept="image/*" data-upload-idx="' + idx + '" hidden' + dis + " /></label>" +
           "</div></div>" +
           '<div class="field"><label>Título</label><input type="text" data-field="title" data-idx="' + idx + '" value="' + esc(book.title || "") + '"' + dis + " /></div>" +
           "</div></div>" +
@@ -716,16 +789,16 @@
           '<div class="tag-preview">' + pills + "</div></div>" +
           '<div class="grid-2">' +
           '<div class="field"><label>Rótulo do botão "Comprar"</label><input type="text" data-field="buyLabel" data-idx="' + idx + '" value="' + esc(book.buyLabel || (book.comingSoon ? "Em breve" : "Comprar")) + '" placeholder="Comprar"' + dis + " /></div>" +
-          '<div class="field"><label>Link de destino (Amazon ou loja)</label><input type="url" data-field="buyUrl" data-idx="' + idx + '" value="' + esc(book.buyUrl || "") + '" placeholder="https://www.amazon.com.br/dp/..."' + dis + " /></div>" +
+          '<div class="field"><label>Link de destino (Amazon ou loja)</label><input type="url" inputmode="url" autocapitalize="off" autocorrect="off" data-field="buyUrl" data-idx="' + idx + '" value="' + esc(book.buyUrl || "") + '" placeholder="https://www.amazon.com.br/dp/..."' + dis + " /></div>" +
           "</div>" +
-          '<label class="checkbox-row"><input type="checkbox" data-field="comingSoon" data-idx="' + idx + '"' + (book.comingSoon ? " checked" : "") + dis + " /> Em breve (desabilita o botão de compra e compartilha o endereço do site)</label>" +
-          "</div>";
+          '<label class="checkbox-row"><input type="checkbox" data-field="comingSoon" data-idx="' + idx + '"' + (book.comingSoon ? " checked" : "") + dis + " /> <span>Em breve (desabilita o botão de compra)</span></label>" +
+          "</div></div>";
       }).join("");
 
       container.innerHTML = readOnlyNotice(writable) + defaultNotice(loaded.isFromDb) +
         '<div class="card">' +
         '<div class="card-head"><h2 class="card-title">Catálogo de livros (' + items.length + ')</h2>' +
-        '<div class="row-actions">' +
+        '<div class="row-actions card-actions-bar">' +
         '<button type="button" class="btn btn-secondary" id="btn-add-book"' + dis + ">+ Adicionar livro</button>" +
         '<button type="button" class="btn btn-primary" id="btn-save-books"' + dis + ">Salvar alterações</button>" +
         "</div></div>" +
@@ -764,14 +837,16 @@
       container.querySelectorAll("[data-act]").forEach(function (btn) {
         btn.addEventListener("click", function () {
           var i = Number(btn.dataset.idx);
-          if (btn.dataset.act === "up") moveItem(items, i, -1);
-          if (btn.dataset.act === "down") moveItem(items, i, 1);
-          if (btn.dataset.act === "del") items.splice(i, 1);
+          if (btn.dataset.act === "toggle") expandedIdx = (expandedIdx === i ? -1 : i);
+          if (btn.dataset.act === "up") { moveItem(items, i, -1); expandedIdx = Math.max(0, i - 1); }
+          if (btn.dataset.act === "down") { moveItem(items, i, 1); expandedIdx = Math.min(items.length - 1, i + 1); }
+          if (btn.dataset.act === "del") { items.splice(i, 1); expandedIdx = Math.min(expandedIdx, items.length - 1); }
           draw();
         });
       });
       $("btn-add-book").addEventListener("click", function () {
         items.push({ title: "", coverUrl: "", description: "", tags: [], buyLabel: "Comprar", buyUrl: "", comingSoon: false });
+        expandedIdx = items.length - 1;
         draw();
       });
       $("btn-save-books").addEventListener("click", async function () {
@@ -811,6 +886,7 @@
     var sectionTitle = loaded.data.sectionTitle || "Temas que você encontra\nnas minhas histórias";
     var items = Array.isArray(loaded.data.items) ? loaded.data.items : [];
     var container = $("panel-content");
+    var expandedIdx = 0;
 
     function presetOptions(selected) {
       return Object.keys(core.THEME_PRESETS).map(function (k) {
@@ -820,17 +896,25 @@
 
     function draw() {
       var dis = writable ? "" : " disabled";
+      var mobile = isMobileViewport();
       var rows = items.map(function (it, idx) {
         var iconType = it.iconType || "preset";
         var preview = core.renderIconHtml(it, core.THEME_PRESETS, 24);
-        return '<div class="item-card" data-idx="' + idx + '">' +
+        var collapsed = mobile && expandedIdx !== idx;
+        var iconLabel = iconType === "preset" ? (core.THEME_PRESETS[it.iconPreset || "heart"] ? core.THEME_PRESETS[it.iconPreset || "heart"].label : "Padrão") : (iconType === "url" ? "Imagem R2" : "SVG");
+        return '<div class="item-card' + (collapsed ? " is-collapsed" : "") + '" data-idx="' + idx + '">' +
           '<div class="item-card-head">' +
-          '<div class="row-actions"><span class="icon-preview">' + preview + '</span><span class="item-index">Tema #' + (idx + 1) + "</span></div>" +
+          '<div class="item-head-main"><span class="icon-preview">' + preview + '</span><div class="item-head-text">' +
+          '<span class="item-index">#' + (idx + 1) + " — " + esc(it.label || "Novo tema") + "</span>" +
+          '<span class="item-summary">Ícone: ' + esc(iconLabel) + "</span>" +
+          "</div></div>" +
           '<div class="row-actions">' +
-          '<button type="button" class="btn btn-ghost btn-sm" data-act="up" data-idx="' + idx + '"' + (idx === 0 || !writable ? " disabled" : "") + ">↑</button>" +
-          '<button type="button" class="btn btn-ghost btn-sm" data-act="down" data-idx="' + idx + '"' + (idx === items.length - 1 || !writable ? " disabled" : "") + ">↓</button>" +
+          (mobile ? '<button type="button" class="btn btn-secondary btn-sm item-toggle-btn" data-act="toggle" data-idx="' + idx + '">' + (collapsed ? "Editar ▾" : "Fechar ▴") + "</button>" : "") +
+          '<button type="button" class="btn btn-ghost btn-sm" aria-label="Mover para cima" data-act="up" data-idx="' + idx + '"' + (idx === 0 || !writable ? " disabled" : "") + ">↑</button>" +
+          '<button type="button" class="btn btn-ghost btn-sm" aria-label="Mover para baixo" data-act="down" data-idx="' + idx + '"' + (idx === items.length - 1 || !writable ? " disabled" : "") + ">↓</button>" +
           '<button type="button" class="btn btn-danger btn-sm" data-act="del" data-idx="' + idx + '"' + dis + ">Excluir</button>" +
           "</div></div>" +
+          '<div class="item-card-body">' +
           '<div class="grid-2">' +
           '<div class="field"><label>Label do tema</label><input type="text" data-field="label" data-idx="' + idx + '" value="' + esc(it.label || "") + '" placeholder="Ex.: Poesia"' + dis + " /></div>" +
           '<div class="field"><label>Tipo de ícone</label><select data-field="iconType" data-idx="' + idx + '"' + dis + ">" +
@@ -842,18 +926,18 @@
             ? '<div class="field"><label>Ícone padrão</label><select data-field="iconPreset" data-idx="' + idx + '"' + dis + ">" + presetOptions(it.iconPreset || "heart") + "</select></div>"
             : iconType === "url"
               ? '<div class="field"><label>URL do ícone (ou envie para o R2)</label><div class="upload-row">' +
-                '<input type="url" data-field="iconUrl" data-idx="' + idx + '" value="' + esc(it.iconUrl || "") + '"' + dis + " />" +
-                '<label class="btn btn-secondary btn-sm">Enviar R2<input type="file" accept="image/*" data-upload-idx="' + idx + '" hidden' + dis + " /></label>" +
+                '<input type="url" inputmode="url" autocapitalize="off" autocorrect="off" data-field="iconUrl" data-idx="' + idx + '" value="' + esc(it.iconUrl || "") + '"' + dis + " />" +
+                '<label class="btn btn-secondary btn-sm">Enviar imagem (R2)<input type="file" accept="image/*" data-upload-idx="' + idx + '" hidden' + dis + " /></label>" +
                 "</div></div>"
               : '<div class="field"><label>SVG personalizado</label><textarea data-field="iconSvg" data-idx="' + idx + '"' + dis + ">" + esc(it.iconSvg || "") + "</textarea></div>"
           ) +
-          "</div>";
+          "</div></div>";
       }).join("");
 
       container.innerHTML = readOnlyNotice(writable) + defaultNotice(loaded.isFromDb) +
         '<div class="card">' +
         '<div class="card-head"><h2 class="card-title">Temas das histórias (' + items.length + ')</h2>' +
-        '<div class="row-actions">' +
+        '<div class="row-actions card-actions-bar">' +
         '<button type="button" class="btn btn-secondary" id="btn-add-theme"' + dis + ">+ Adicionar tema</button>" +
         '<button type="button" class="btn btn-primary" id="btn-save-themes"' + dis + ">Salvar alterações</button>" +
         "</div></div>" +
@@ -883,14 +967,16 @@
       container.querySelectorAll("[data-act]").forEach(function (btn) {
         btn.addEventListener("click", function () {
           var i = Number(btn.dataset.idx);
-          if (btn.dataset.act === "up") moveItem(items, i, -1);
-          if (btn.dataset.act === "down") moveItem(items, i, 1);
-          if (btn.dataset.act === "del") items.splice(i, 1);
+          if (btn.dataset.act === "toggle") expandedIdx = (expandedIdx === i ? -1 : i);
+          if (btn.dataset.act === "up") { moveItem(items, i, -1); expandedIdx = Math.max(0, i - 1); }
+          if (btn.dataset.act === "down") { moveItem(items, i, 1); expandedIdx = Math.min(items.length - 1, i + 1); }
+          if (btn.dataset.act === "del") { items.splice(i, 1); expandedIdx = Math.min(expandedIdx, items.length - 1); }
           draw();
         });
       });
       $("btn-add-theme").addEventListener("click", function () {
         items.push({ label: "", iconType: "preset", iconPreset: "star", iconUrl: "", iconSvg: "" });
+        expandedIdx = items.length - 1;
         draw();
       });
       $("btn-save-themes").addEventListener("click", async function () {
@@ -941,12 +1027,12 @@
       var rowsHtml = filtered.map(function (s) {
         var dateStr = s.createdAt ? String(s.createdAt).slice(0, 10) : "—";
         return "<tr>" +
-          "<td><strong>" + esc(s.email) + "</strong></td>" +
-          "<td>" + esc(s.name || "—") + "</td>" +
-          '<td><span class="badge ' + ((s.status || "ativo") === "ativo" ? "badge-write" : "badge-read") + '">' + esc(s.status || "ativo") + "</span></td>" +
-          "<td>" + esc(s.notes || "—") + "</td>" +
-          "<td>" + esc(dateStr) + "</td>" +
-          '<td><div class="row-actions">' +
+          '<td data-label="E-mail"><strong>' + esc(s.email) + "</strong></td>" +
+          '<td data-label="Nome">' + esc(s.name || "—") + "</td>" +
+          '<td data-label="Status"><span class="badge ' + ((s.status || "ativo") === "ativo" ? "badge-write" : "badge-read") + '">' + esc(s.status || "ativo") + "</span></td>" +
+          '<td data-label="Observações">' + esc(s.notes || "—") + "</td>" +
+          '<td data-label="Cadastro">' + esc(dateStr) + "</td>" +
+          '<td class="td-actions"><div class="row-actions">' +
           '<button type="button" class="btn btn-secondary btn-sm" data-sub-edit="' + esc(s.id) + '"' + dis + ">Editar</button>" +
           '<button type="button" class="btn btn-danger btn-sm" data-sub-del="' + esc(s.id) + '"' + dis + ">Excluir</button>" +
           "</div></td></tr>";
@@ -958,24 +1044,24 @@
         '<div class="stat-card"><div class="stat-value">' + activeCount + '</div><div class="stat-label">Ativos</div></div>' +
         "</div>" +
         (writable
-          ? '<div class="card">' +
+          ? '<div class="card" id="newsletter-form-card">' +
             '<div class="card-head"><h2 class="card-title">' + (editing ? "Editar inscrito" : "Adicionar inscrito") + "</h2>" +
             (editing ? '<button type="button" class="btn btn-ghost btn-sm" id="btn-cancel-sub">Cancelar edição</button>' : "") + "</div>" +
             '<div class="grid-3">' +
-            '<div class="field"><label for="sub-email">E-mail</label><input type="email" id="sub-email" value="' + esc(editing ? editing.email : "") + '" placeholder="leitor@exemplo.com" /></div>' +
+            '<div class="field"><label for="sub-email">E-mail</label><input type="email" inputmode="email" autocapitalize="off" autocorrect="off" id="sub-email" value="' + esc(editing ? editing.email : "") + '" placeholder="leitor@exemplo.com" /></div>' +
             '<div class="field"><label for="sub-name">Nome</label><input type="text" id="sub-name" value="' + esc(editing ? editing.name : "") + '" placeholder="Opcional" /></div>' +
             '<div class="field"><label for="sub-status">Status</label><select id="sub-status">' +
             '<option value="ativo"' + (!editing || editing.status === "ativo" ? " selected" : "") + ">Ativo</option>" +
             '<option value="inativo"' + (editing && editing.status === "inativo" ? " selected" : "") + ">Inativo</option>" +
             "</select></div></div>" +
             '<div class="field"><label for="sub-notes">Observações</label><input type="text" id="sub-notes" value="' + esc(editing ? editing.notes : "") + '" placeholder="Origem, interesse, etc." /></div>' +
-            '<button type="button" class="btn btn-primary" id="btn-save-sub">' + (editing ? "Atualizar inscrito" : "Adicionar inscrito") + "</button>" +
+            '<button type="button" class="btn btn-primary" style="width:100%" id="btn-save-sub">' + (editing ? "Atualizar inscrito" : "Adicionar inscrito") + "</button>" +
             "</div>"
           : "") +
         '<div class="card">' +
         '<div class="card-head"><h2 class="card-title">Lista de inscritos (' + filtered.length + ')</h2>' +
-        '<div class="row-actions">' +
-        '<input type="text" id="sub-search" value="' + esc(state.newsletterFilter) + '" placeholder="Filtrar por e-mail ou nome..." style="background:#140b10;border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text)" />' +
+        '<div class="row-actions newsletter-toolbar">' +
+        '<input type="search" inputmode="search" id="sub-search" class="search-input" value="' + esc(state.newsletterFilter) + '" placeholder="Filtrar por e-mail ou nome..." />' +
         '<button type="button" class="btn btn-secondary" id="btn-export-csv">Baixar CSV</button>' +
         (writable ? '<label class="btn btn-secondary">Importar CSV<input type="file" id="input-import-csv" accept=".csv,text/csv" hidden /></label>' : "") +
         "</div></div>" +
@@ -1065,6 +1151,8 @@
           btn.addEventListener("click", function () {
             state.editingSubscriberId = btn.dataset.subEdit;
             draw();
+            var formCard = $("newsletter-form-card");
+            if (formCard && typeof formCard.scrollIntoView === "function") formCard.scrollIntoView({ behavior: "smooth", block: "start" });
           });
         });
         container.querySelectorAll("[data-sub-del]").forEach(function (btn) {
@@ -1100,11 +1188,11 @@
     container.innerHTML = readOnlyNotice(writable) + defaultNotice(loaded.isFromDb) +
       '<div class="card">' +
       '<div class="card-head"><h2 class="card-title">Google Analytics (GA4) e Convite de Web Push</h2>' +
-      '<button type="button" class="btn btn-primary" id="btn-save-settings"' + dis + ">Salvar configurações</button></div>" +
+      '<div class="row-actions card-actions-bar"><button type="button" class="btn btn-primary" id="btn-save-settings"' + dis + ">Salvar configurações</button></div></div>" +
       '<div class="field"><label for="ga-id-input">ID de medição GA4</label>' +
-      '<input type="text" id="ga-id-input" value="' + esc(data.gaMeasurementId || "") + '" placeholder="G-XXXXXXXXXX"' + dis + " />" +
+      '<input type="text" autocapitalize="characters" autocorrect="off" id="ga-id-input" value="' + esc(data.gaMeasurementId || "") + '" placeholder="G-XXXXXXXXXX"' + dis + " />" +
       '<span class="field-hint">O site rastreia automaticamente visualizações de página, cliques em Comprar, compartilhamentos, inscrições na newsletter e opt-in de push.</span></div>' +
-      '<label class="checkbox-row"><input type="checkbox" id="push-enabled-input"' + (data.pushEnabled !== false ? " checked" : "") + dis + " /> Exibir convite para ativar notificações Web Push no site</label>" +
+      '<label class="checkbox-row"><input type="checkbox" id="push-enabled-input"' + (data.pushEnabled !== false ? " checked" : "") + dis + " /> <span>Exibir convite para ativar notificações Web Push no site</span></label>" +
       '<div class="grid-2">' +
       '<div class="field"><label for="push-prompt-title">Título do convite no site</label><input type="text" id="push-prompt-title" value="' + esc(data.pushPromptTitle || "") + '"' + dis + " /></div>" +
       '<div class="field"><label for="push-prompt-body">Texto do convite no site</label><input type="text" id="push-prompt-body" value="' + esc(data.pushPromptBody || "") + '"' + dis + " /></div>" +
@@ -1140,10 +1228,10 @@
     function draw() {
       var historyRows = state.pushCampaigns.map(function (c) {
         return "<tr>" +
-          "<td><strong>" + esc(c.title) + "</strong><div class=\"field-hint\">" + esc(c.body) + "</div></td>" +
-          "<td>" + (c.url ? '<a href="' + esc(c.url) + '" target="_blank" rel="noopener">Abrir</a>' : "—") + "</td>" +
-          "<td>" + esc(c.sentBy || "—") + "</td>" +
-          "<td>" + esc(c.sentAt ? String(c.sentAt).replace("T", " ").slice(0, 16) : "—") + "</td>" +
+          '<td data-label="Notificação"><strong>' + esc(c.title) + '</strong><div class="field-hint">' + esc(c.body) + "</div></td>" +
+          '<td data-label="Link">' + (c.url ? '<a href="' + esc(c.url) + '" target="_blank" rel="noopener">Abrir</a>' : "—") + "</td>" +
+          '<td data-label="Enviado por">' + esc(c.sentBy || "—") + "</td>" +
+          '<td data-label="Data">' + esc(c.sentAt ? String(c.sentAt).replace("T", " ").slice(0, 16) : "—") + "</td>" +
           "</tr>";
       }).join("");
 
@@ -1156,14 +1244,14 @@
         '<div class="card-head"><h2 class="card-title">Enviar nova notificação Web Push</h2></div>' +
         '<div class="grid-2">' +
         '<div class="field"><label for="push-title">Título (até 120 caracteres)</label><input type="text" id="push-title" maxlength="120" placeholder="Ex.: Novo livro disponível na Amazon!"' + dis + " /></div>" +
-        '<div class="field"><label for="push-url">URL ao clicar (opcional)</label><input type="url" id="push-url" placeholder="https://www.amazon.com.br/dp/..."' + dis + " /></div>" +
+        '<div class="field"><label for="push-url">URL ao clicar (opcional)</label><input type="url" inputmode="url" autocapitalize="off" autocorrect="off" id="push-url" placeholder="https://www.amazon.com.br/dp/..."' + dis + " /></div>" +
         "</div>" +
         '<div class="field"><label for="push-body">Mensagem (até 300 caracteres)</label><textarea id="push-body" maxlength="300" placeholder="Confira o lançamento da trilogia As Ruínas da Alma."' + dis + "></textarea></div>" +
         '<div class="field"><label for="push-icon">Ícone da notificação (URL ou upload no R2, opcional)</label><div class="upload-row">' +
-        '<input type="url" id="push-icon" placeholder="https://..."' + dis + " />" +
-        '<label class="btn btn-secondary btn-sm">Enviar R2<input type="file" id="push-icon-file" accept="image/*" hidden' + dis + " /></label>" +
+        '<input type="url" inputmode="url" autocapitalize="off" autocorrect="off" id="push-icon" placeholder="https://..."' + dis + " />" +
+        '<label class="btn btn-secondary btn-sm">Enviar imagem (R2)<input type="file" id="push-icon-file" accept="image/*" hidden' + dis + " /></label>" +
         "</div></div>" +
-        '<button type="button" class="btn btn-primary" id="btn-send-push"' + dis + ">Disparar notificação agora</button>" +
+        '<button type="button" class="btn btn-primary" style="width:100%" id="btn-send-push"' + dis + ">Disparar notificação agora</button>" +
         "</div>" +
         '<div class="card"><div class="card-head"><h2 class="card-title">Histórico de envios</h2></div>' +
         '<div class="table-wrap"><table class="data-table"><thead><tr><th>Notificação</th><th>Link</th><th>Enviado por</th><th>Data</th></tr></thead><tbody>' +
@@ -1215,8 +1303,8 @@
 
       var permRows = core.BLOCKS.map(function (b) {
         var val = formPerms[b.id] || "none";
-        return '<div class="perm-row"><span>' + esc(b.label) + '</span>' +
-          '<select data-perm-block="' + esc(b.id) + '"' + dis + ">" +
+        return '<div class="perm-row"><span>' + esc(b.label) + "</span>" +
+          '<select data-perm-block="' + esc(b.id) + '" data-level="' + esc(val) + '"' + dis + ">" +
           '<option value="none"' + (val === "none" ? " selected" : "") + ">Sem acesso</option>" +
           '<option value="read"' + (val === "read" ? " selected" : "") + ">Somente leitura</option>" +
           '<option value="write"' + (val === "write" ? " selected" : "") + ">Leitura e escrita</option>" +
@@ -1234,9 +1322,9 @@
 
         var canEditRow = writable && (superAdmin || !u.isSuperAdmin);
         return "<tr>" +
-          "<td><strong>" + esc(u.email) + "</strong><div class=\"field-hint\">" + esc(u.name || "") + "</div></td>" +
-          '<td><div class="tag-preview">' + summary + "</div></td>" +
-          '<td><div class="row-actions">' +
+          '<td data-label="Conta Google"><strong>' + esc(u.email) + '</strong><div class="field-hint">' + esc(u.name || "") + "</div></td>" +
+          '<td data-label="Permissões"><div class="tag-preview">' + summary + "</div></td>" +
+          '<td class="td-actions"><div class="row-actions">' +
           '<button type="button" class="btn btn-secondary btn-sm" data-user-edit="' + esc(u.email) + '"' + (canEditRow ? "" : " disabled") + ">Editar</button>" +
           '<button type="button" class="btn btn-danger btn-sm" data-user-del="' + esc(u.email) + '"' + (canEditRow ? "" : " disabled") + ">Remover</button>" +
           "</div></td></tr>";
@@ -1244,15 +1332,15 @@
 
       container.innerHTML = readOnlyNotice(writable) +
         (writable
-          ? '<div class="card">' +
+          ? '<div class="card" id="user-form-card">' +
             '<div class="card-head"><h2 class="card-title">' + (editing ? "Editar permissões: " + esc(editing.email) : "Autorizar nova conta Google") + "</h2>" +
             (editing ? '<button type="button" class="btn btn-ghost btn-sm" id="btn-cancel-user">Cancelar</button>' : "") + "</div>" +
             '<div class="grid-2">' +
-            '<div class="field"><label for="u-email">E-mail da conta Google</label><input type="email" id="u-email" value="' + esc(editing ? editing.email : "") + '"' + (editing ? " disabled" : "") + ' placeholder="usuario@gmail.com" /></div>' +
+            '<div class="field"><label for="u-email">E-mail da conta Google</label><input type="email" inputmode="email" autocapitalize="off" autocorrect="off" id="u-email" value="' + esc(editing ? editing.email : "") + '"' + (editing ? " disabled" : "") + ' placeholder="usuario@gmail.com" /></div>' +
             '<div class="field"><label for="u-name">Nome</label><input type="text" id="u-name" value="' + esc(editing ? editing.name : "") + '" placeholder="Nome do colaborador" /></div>' +
             "</div>" +
             (superAdmin
-              ? '<label class="checkbox-row"><input type="checkbox" id="u-super"' + (editing && editing.isSuperAdmin ? " checked" : "") + " /> Super-administrador (leitura e escrita em todos os blocos)</label>"
+              ? '<label class="checkbox-row"><input type="checkbox" id="u-super"' + (editing && editing.isSuperAdmin ? " checked" : "") + " /> <span>Super-administrador (leitura e escrita em todos os blocos)</span></label>"
               : "") +
             '<div class="row-actions" style="margin:8px 0 12px">' +
             '<span class="field-hint">Atalhos:</span>' +
@@ -1261,7 +1349,7 @@
             '<button type="button" class="btn btn-ghost btn-sm" data-perm-preset="none">Limpar</button>' +
             "</div>" +
             '<div class="perm-grid">' + permRows + "</div>" +
-            '<div style="margin-top:14px"><button type="button" class="btn btn-primary" id="btn-save-user">' + (editing ? "Salvar permissões" : "Autorizar usuário") + "</button></div>" +
+            '<div style="margin-top:14px"><button type="button" class="btn btn-primary" style="width:100%" id="btn-save-user">' + (editing ? "Salvar permissões" : "Autorizar usuário") + "</button></div>" +
             "</div>"
           : "") +
         '<div class="card"><div class="card-head"><h2 class="card-title">Usuários autorizados (' + state.users.length + ')</h2></div>' +
@@ -1273,10 +1361,18 @@
         if ($("btn-cancel-user")) {
           $("btn-cancel-user").addEventListener("click", function () { state.editingUserEmail = null; draw(); });
         }
+        container.querySelectorAll("[data-perm-block]").forEach(function (sel) {
+          sel.addEventListener("change", function () {
+            sel.setAttribute("data-level", sel.value);
+          });
+        });
         container.querySelectorAll("[data-perm-preset]").forEach(function (btn) {
           btn.addEventListener("click", function () {
             var preset = btn.dataset.permPreset;
-            container.querySelectorAll("[data-perm-block]").forEach(function (sel) { sel.value = preset; });
+            container.querySelectorAll("[data-perm-block]").forEach(function (sel) {
+              sel.value = preset;
+              sel.setAttribute("data-level", preset);
+            });
           });
         });
         $("btn-save-user").addEventListener("click", async function () {
@@ -1306,6 +1402,8 @@
           btn.addEventListener("click", function () {
             state.editingUserEmail = btn.dataset.userEdit;
             draw();
+            var formCard = $("user-form-card");
+            if (formCard && typeof formCard.scrollIntoView === "function") formCard.scrollIntoView({ behavior: "smooth", block: "start" });
           });
         });
         container.querySelectorAll("[data-user-del]").forEach(function (btn) {
@@ -1371,11 +1469,25 @@
       var btn = ev.target.closest("[data-block]");
       if (btn) openBlock(btn.dataset.block);
     });
+    if ($("mobile-block-strip")) {
+      $("mobile-block-strip").addEventListener("click", function (ev) {
+        var btn = ev.target.closest("[data-block]");
+        if (btn) openBlock(btn.dataset.block);
+      });
+    }
     $("btn-sidebar-open").addEventListener("click", function () {
-      $("admin-sidebar").classList.add("open");
+      setSidebarOpen(true);
     });
     $("btn-sidebar-close").addEventListener("click", function () {
-      $("admin-sidebar").classList.remove("open");
+      setSidebarOpen(false);
+    });
+    if ($("sidebar-backdrop")) {
+      $("sidebar-backdrop").addEventListener("click", function () {
+        setSidebarOpen(false);
+      });
+    }
+    document.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape") setSidebarOpen(false);
     });
     $("btn-logout").addEventListener("click", function () {
       if (state.adapter) state.adapter.signOut();
