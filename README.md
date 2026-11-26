@@ -5,11 +5,17 @@ Site estático (HTML + CSS + um pouco de JS), sem build e sem dependências.
 ## Estrutura
 
 ```
-index.html      # página completa (estilos inline + script no final)
-tests/          # verificações automatizadas (Playwright / Node)
-tools/          # imagem de prévia do link e script de deploy
-.github/workflows/pages.yml  # testa e publica no GitHub Pages
-images/         # page_bg.jpg (fundo único da página inteira, sem texto), retrato e capas
+index.html                  # site público (fallback estático + hidratação Firestore, GA4 e Web Push)
+admin.html                  # painel administrativo (login Google, RBAC por bloco, R2, newsletter e push)
+firebase-messaging-sw.js    # service worker de Web Push (FCM)
+firestore.rules             # regras de segurança Firestore com permissões por bloco
+assets/                     # config pública, núcleo CMS compartilhado, hidratação do site e app do painel
+worker/                     # Cloudflare Worker (upload seguro para R2 + envio/inscrição Web Push FCM)
+docs/setup-admin.md         # guia passo a passo de configuração (Firebase Spark, R2, Worker e GA4)
+tests/                      # verificações automatizadas (Playwright / Node)
+tools/                      # imagem de prévia do link e script de deploy
+.github/workflows/pages.yml # testa e publica no GitHub Pages
+images/                     # page_bg.jpg (fundo único da página inteira, sem texto), retrato e capas
 ```
 
 ## Rodar localmente
@@ -104,26 +110,30 @@ No desktop sem esse menu, o texto e o link são copiados para a área de transfe
 - Alvos de toque têm no mínimo 24 px (WCAG 2.2), e itens do menu mobile têm 44 px.
 - No celular, o menu do rodapé dispensa o separador "|" para não sobrar um no fim da linha quando ele quebra.
 
+## Painel administrativo, GA4 e Web Push
+
+O painel fica em `admin.html` e utiliza **Firebase Spark (Auth Google + Firestore + FCM)**, **Cloudflare Worker + R2** (upload seguro de imagens/ícones e disparo de Web Push) e **Google Analytics (GA4)**.
+Para configurar as credenciais, regras de segurança e publicar o Worker, siga [docs/setup-admin.md](docs/setup-admin.md).
+
 ## Testes
 
 ```bash
+node tests/cms-core.test.js
+node tests/worker.test.js
 node tests/book-share-icons.test.js
 node tests/responsive.test.js
 node tests/share-links.test.js
 node tests/site-url-deploy.test.js
+node tests/site-cms-hydration.test.js
+node tests/admin-panel.test.js
 ```
 
-`responsive.test.js` percorre 15 larguras (320 a 1920 px) e verifica: rolagem horizontal, elementos fora da tela,
-texto `\n` solto, cards estreitos, "Recomendar" cortado ou sobreposto, ícones saindo do card, alvos de toque
-menores que 24 px e o menu mobile (abrir, tamanho dos itens, fechar com Esc). Salva screenshots em `tests/screenshots/`.
+- `cms-core.test.js` valida sanitização XSS de rich text, SVG e URLs, normalização Amazon, RBAC por bloco e exportação/importação CSV.
+- `worker.test.js` testa o Cloudflare Worker com assinatura/verificação RS256 real, CORS, permissões Firestore, upload/exclusão no R2 e inscrição/envio de Web Push (FCM).
+- `site-cms-hydration.test.js` valida a hidratação dinâmica de todos os blocos no `index.html`, GA4 (`dataLayer`), newsletter e banner de Web Push.
+- `admin-panel.test.js` valida login, tela de acesso negado, RBAC por bloco (leitura vs. leitura/escrita), CRUD dos blocos, rich text, upload R2, newsletter, Web Push e gestão de usuários.
+- `responsive.test.js` percorre 15 larguras (320 a 1920 px) e verifica layout, alvos de toque e menu mobile, salvando screenshots em `tests/screenshots/`.
+- `share-links.test.js` valida os links de compartilhamento em 5 endereços simulados, área de transferência e fallback `file://`.
+- `site-url-deploy.test.js` confere as tags de prévia (`og:*`), a imagem 1200×630 e `tools/set-site-url.js`.
+- `book-share-icons.test.js` confere os ícones de compartilhamento em desktop, tablet e celular.
 
-`share-links.test.js` simula o site em GitHub Pages, domínio próprio (com e sem `www`, com `?utm` e `#âncora`) e `localhost`.
-Em cada endereço confere que os 12 links de WhatsApp/Facebook e os 13 botões de compartilhamento nativo levam ao destino certo,
-que não sobra domínio fixo nem placeholder, que links externos abrem em nova aba, que as âncoras existem e que as imagens carregam.
-Também testa a cópia para a área de transferência no desktop e o fallback de `file://`. Não acessa a internet.
-
-`site-url-deploy.test.js` confere as tags de prévia, a imagem (JPEG 1200×630, menor que 300 KB) e o script de deploy:
-endereço com e sem barra final, em subpasta, rodando duas vezes, e falha com endereço inválido sem alterar o arquivo.
-
-Confere, em desktop, tablet e celular, que todos os cards de livros têm os mesmos ícones de
-compartilhamento (quantidade, tamanho e cor). Usa Playwright + Chromium (`npm i -D playwright` se não houver).

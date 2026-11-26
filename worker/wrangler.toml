@@ -1,0 +1,22 @@
+name = "larissagalvao-api"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+
+# Bucket R2 gratuito para fotos, capas e ícones (crie o bucket antes: wrangler r2 bucket create larissagalvao-media)
+[[r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "larissagalvao-media"
+
+[vars]
+# ID do projeto no Firebase (ex.: larissagalvao-site)
+FIREBASE_PROJECT_ID = "SEU_FIREBASE_PROJECT_ID"
+# URL pública do bucket R2 (ex.: https://pub-xxxxxxxxxxxxxxxx.r2.dev ou subdomínio próprio)
+R2_PUBLIC_URL = "https://pub-SEU-BUCKET.r2.dev"
+# Origens permitidas no CORS (separadas por vírgula)
+ALLOWED_ORIGINS = "https://dracosdev.github.io,http://localhost:8080,http://127.0.0.1:8080"
+# E-mails super-administradores iniciais (separados por vírgula, em minúsculas)
+BOOTSTRAP_ADMINS = "seu-email-admin@gmail.com"
+
+# Segredo configurado via CLI (NUNCA coloque no arquivo):
+#   wrangler secret put FIREBASE_SERVICE_ACCOUNT_JSON
+# Cole o JSON da conta de serviço do Firebase (necessário apenas para Web Push via FCM).

@@ -32,10 +32,14 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Testes
         run: |
+          node tests/cms-core.test.js
+          node tests/worker.test.js
           node tests/book-share-icons.test.js
           node tests/responsive.test.js
           node tests/share-links.test.js
           node tests/site-url-deploy.test.js
+          node tests/site-cms-hydration.test.js
+          node tests/admin-panel.test.js
 
   deploy:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
@@ -55,8 +59,8 @@ jobs:
       - name: Montar site com o endereço publicado
         run: |
           mkdir _site
-          cp index.html _site/
-          cp -r images _site/
+          cp index.html admin.html firebase-messaging-sw.js _site/
+          cp -r images assets _site/
           node tools/set-site-url.js "${{ steps.pages.outputs.base_url }}/" _site/index.html
       - uses: actions/upload-pages-artifact@v3
         with:

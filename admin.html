@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Painel Administrativo — Larissa Galvão</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/admin/admin.css" />
+</head>
+<body>
+  <!-- Tela de Login -->
+  <main id="auth-screen" class="auth-screen">
+    <section class="auth-card">
+      <div class="brand-title">Larissa Galvão</div>
+      <div class="brand-sub">PAINEL ADMINISTRATIVO</div>
+      <p class="auth-desc">Entre com uma conta Google autorizada para gerenciar o conteúdo do site, a lista da newsletter, as permissões de acesso e as notificações Web Push.</p>
+      <div id="config-warning" class="alert alert-warn" hidden>
+        Configuração do Firebase ausente em <code>assets/config.js</code>. Siga o guia em <code>docs/setup-admin.md</code> para ativar login, Firestore, R2 e Web Push.
+      </div>
+      <button id="btn-google-login" type="button" class="btn btn-primary btn-lg">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1h-9.18v2.98h5.27c-.23 1.48-1.74 4.34-5.27 4.34-3.17 0-5.76-2.62-5.76-5.86s2.59-5.86 5.76-5.86c1.8 0 3.01.77 3.7 1.43l2.52-2.44C16.78 4.18 14.69 3.2 12.17 3.2 7.12 3.2 3 7.32 3 12.56s4.12 9.36 9.17 9.36c5.3 0 8.81-3.73 8.81-8.98 0-.6-.06-1.06-.13-1.84z"/></svg>
+        <span>Entrar com Google</span>
+      </button>
+      <div id="auth-error" class="alert alert-error" hidden></div>
+      <a href="./" class="back-link">← Voltar para o site</a>
+    </section>
+  </main>
+
+  <!-- Tela de Acesso Negado -->
+  <main id="denied-screen" class="auth-screen" hidden>
+    <section class="auth-card">
+      <div class="brand-title">Acesso não autorizado</div>
+      <p class="auth-desc">A conta <strong id="denied-email"></strong> não possui permissão para acessar nenhum bloco deste painel. Peça a um administrador para autorizar este e-mail.</p>
+      <div class="row-actions" style="justify-content:center">
+        <button id="btn-denied-logout" type="button" class="btn btn-secondary">Sair e trocar de conta</button>
+        <a href="./" class="btn btn-ghost">Voltar ao site</a>
+      </div>
+    </section>
+  </main>
+
+  <!-- Aplicação Principal do Painel -->
+  <div id="admin-shell" class="admin-shell" hidden>
+    <aside id="admin-sidebar" class="sidebar" aria-label="Blocos do painel">
+      <div class="sidebar-header">
+        <div>
+          <div class="brand-title sm">Larissa Galvão</div>
+          <div class="brand-sub">ADMIN</div>
+        </div>
+        <button id="btn-sidebar-close" type="button" class="icon-btn mobile-only" aria-label="Fechar menu">×</button>
+      </div>
+      <nav id="sidebar-nav" class="sidebar-nav"></nav>
+      <div class="sidebar-footer">
+        <div class="user-box">
+          <div id="user-name" class="user-name"></div>
+          <div id="user-email" class="user-email"></div>
+          <div id="user-role" class="user-role"></div>
+        </div>
+        <div class="sidebar-footer-actions">
+          <a href="./" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">Ver site</a>
+          <button id="btn-logout" type="button" class="btn btn-secondary btn-sm">Sair</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button id="btn-sidebar-open" type="button" class="icon-btn mobile-only" aria-label="Abrir menu">☰</button>
+          <div>
+            <h1 id="section-title" class="section-title">Painel</h1>
+            <p id="section-desc" class="section-desc"></p>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <span id="perm-badge" class="badge"></span>
+        </div>
+      </header>
+
+      <div id="toast-area" class="toast-area" aria-live="polite"></div>
+
+      <section id="panel-content" class="panel-content"></section>
+    </div>
+  </div>
+
+  <script src="assets/config.js"></script>
+  <script src="assets/cms-core.js"></script>
+  <script src="assets/admin/admin.js"></script>
+</body>
+</html>

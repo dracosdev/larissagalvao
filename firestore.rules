@@ -1,0 +1,108 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Substitua pelo e-mail Google do administrador principal (em minúsculas).
+    // Este usuário terá acesso total inicial para cadastrar os demais no painel.
+    function isBootstrapAdmin() {
+      return isSignedIn() && userEmail() in [
+        'seu-email-admin@gmail.com'
+      ];
+    }
+
+    function isSignedIn() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && request.auth.token.email_verified == true;
+    }
+
+    function userEmail() {
+      return request.auth.token.email.lower();
+    }
+
+    function adminDocPath() {
+      return /databases/$(database)/documents/adminUsers/$(userEmail());
+    }
+
+    function hasAdminDoc() {
+      return isSignedIn() && exists(adminDocPath());
+    }
+
+    function adminData() {
+      return get(adminDocPath()).data;
+    }
+
+    function isSuperAdmin() {
+      return isBootstrapAdmin() || (hasAdminDoc() && adminData().isSuperAdmin == true);
+    }
+
+    function hasPerm(block, level) {
+      return isSuperAdmin() || (
+        hasAdminDoc()
+        && adminData().permissions is map
+        && block in adminData().permissions
+        && (
+          (level == 'read' && adminData().permissions[block] in ['read', 'write'])
+          || (level == 'write' && adminData().permissions[block] == 'write')
+        )
+      );
+    }
+
+    function contentBlockFromDoc(docId) {
+      return docId == 'settings' ? 'analytics' : docId;
+    }
+
+    function isValidPublicNewsletterCreate() {
+      return request.resource.data.keys().hasOnly(['email', 'name', 'status', 'notes', 'createdAt', 'updatedAt', 'source'])
+        && request.resource.data.email is string
+        && request.resource.data.email.size() >= 5
+        && request.resource.data.email.size() <= 200
+        && request.resource.data.email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$')
+        && (!('status' in request.resource.data) || request.resource.data.status == 'ativo');
+    }
+
+    function isValidPushSubscriberWrite() {
+      return request.resource.data.keys().hasOnly(['token', 'topic', 'userAgent', 'createdAt', 'updatedAt'])
+        && request.resource.data.token is string
+        && request.resource.data.token.size() >= 20
+        && request.resource.data.token.size() <= 500;
+    }
+
+    // Conteúdo público do site (1 documento por bloco editável)
+    match /siteContent/{docId} {
+      allow read: if true;
+      allow write: if docId in ['topMenu', 'socialLinks', 'hero', 'author', 'books', 'themes', 'footerMenu', 'settings']
+        && hasPerm(contentBlockFromDoc(docId), 'write');
+    }
+
+    // Inscritos na newsletter
+    match /newsletterSubscribers/{docId} {
+      allow create: if isValidPublicNewsletterCreate() || hasPerm('newsletter', 'write');
+      allow read: if hasPerm('newsletter', 'read');
+      allow update, delete: if hasPerm('newsletter', 'write');
+    }
+
+    // Usuários autorizados do painel e suas permissões por bloco
+    match /adminUsers/{email} {
+      allow get: if isSignedIn() && (userEmail() == email || hasPerm('users', 'read'));
+      allow list: if hasPerm('users', 'read');
+      allow create, update: if hasPerm('users', 'write')
+        && (isSuperAdmin() || request.resource.data.isSuperAdmin != true);
+      allow delete: if hasPerm('users', 'write')
+        && (isSuperAdmin() || resource.data.isSuperAdmin != true);
+    }
+
+    // Campanhas de Web Push enviadas
+    match /pushCampaigns/{docId} {
+      allow read: if hasPerm('push', 'read');
+      allow create, update, delete: if hasPerm('push', 'write');
+    }
+
+    // Inscrições de Web Push (metadados para contagem no painel)
+    match /pushSubscribers/{docId} {
+      allow create, update: if isValidPushSubscriberWrite();
+      allow read: if hasPerm('push', 'read');
+      allow delete: if hasPerm('push', 'write');
+    }
+  }
+}
